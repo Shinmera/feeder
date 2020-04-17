@@ -85,11 +85,11 @@
 (defmacro with-children ((name root) &body clauses)
   (let ((tag-name (gensym "TAG-NAME")))
     `(loop for ,name across (plump:children ,root)
-           for ,tag-name = (plump:tag-name ,name)
            do (when (typep ,name 'plump:element)
-                (cond ,@(loop for (tag . body) in clauses
-                              collect `((string-equal ,tag ,tag-name)
-                                        ,@body)))))))
+                (let ((,tag-name (plump:tag-name ,name)))
+                  (cond ,@(loop for (tag . body) in clauses
+                                collect `((string-equal ,tag ,tag-name)
+                                          ,@body))))))))
 
 (defun trim (string)
   (string-trim '(#\Space #\Tab #\Return #\Linefeed) string))
