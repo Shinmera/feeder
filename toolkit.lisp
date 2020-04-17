@@ -47,5 +47,69 @@
                          (string-equal (ensure-attribute-name ,tag) (plump:tag-name ,name)))
                 ,@body))))
 
+(defmacro with-children ((name root) &body bodies)
+  (let ((tag-name (gensym "TAG-NAME")))
+    `(loop for ,name across (plump:children ,root)
+           for ,tag-name = (plump:tag-name ,name)
+           do (when (typep ,name 'plump:element)
+                (cond ,@(loop for (tag . body) in bodies
+                              collect `((string-equal ,(ensure-attribute-name tag) ,tag-name)
+                                        ,@body)))))))
+
+(defun trim (string)
+  (string-trim '(#\Space #\Tab #\Return #\Linefeed) string))
+
 (defun text (entity)
-  (string-trim '(#\Space #\Tab #\Return #\Linefeed) (plump:text entity)))
+  (trim (plump:text entity)))
+
+(defun split (splitter string)
+  (let ((parts ())
+        (buffer (make-string-output-stream)))
+    (flet ((end ()
+             (let ((string (get-output-stream-string buffer)))
+               (when (string/= "" string)
+                 (push string parts)))))
+      (loop for c across string
+            do (if (char= c splitter)
+                   (end)
+                   (write-char c buffer))
+            finally (end)))
+    (nreverse parts)))
+
+(defun month-digit (month)
+  (position month local-time:+short-month-names+ :test #'string-equal))
+
+(defun prefix-p (prefix string)
+  (and (<= (length prefix) (length string))
+       (string-equal prefix string :end2 (length prefix))))
+
+(defun tz-offset (tz)
+  ;; RFC822 TZ spec parsing. What a fucking mess.
+  (let ((tz-end (or (position #\+ tz)
+                    (position #\- tz)
+                    (length tz))))
+    (+ (* 60 (cond ((= 1 tz-end)
+                    (let ((char (char-downcase (char tz 0))))
+                      (cond ((char<= #\a char #\j)
+                             (- (char-code #\a) (char-code char) 1))
+                            ;; J is ignored in the spec, we just map J and K to the same to be extra lenient.
+                            ((char<= #\k char #\m)
+                             (- (char-code #\a) (char-code char)))
+                            ((char<= #\n char #\y)
+                             (- (char-code char) (char-code #\m)))
+                            ;; Other crap is just treated as zero.
+                            (T
+                             0))))
+                   ((prefix-p "ES" tz) -5)
+                   ((prefix-p "ED" tz) -4)
+                   ((prefix-p "CS" tz) -6)
+                   ((prefix-p "CD" tz) -5)
+                   ((prefix-p "MS" tz) -7)
+                   ((prefix-p "MD" tz) -6)
+                   ((prefix-p "PS" tz) -8)
+                   ((prefix-p "PD" tz) -7)
+                   (T 0)))
+       (if (< tz-end (length tz))
+           (+ (* 60 (parse-integer tz :start tz-end :end (+ 2 tz-end)))
+              (parse-integer tz :start (+ 2 tz-end)))
+           0))))

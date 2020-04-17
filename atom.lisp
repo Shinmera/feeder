@@ -55,12 +55,13 @@
   (setf (title link) (plump:attribute node "title")))
 
 (defmethod parse-to ((person person) (node plump:element) (format atom))
-  (with-child (child node :name)
-    (setf (name person) (text child)))
-  (with-child (child node :email)
-    (setf (email person) (text child)))
-  (with-child (child node :uri)
-    (setf (link person) (parse-to 'link child format))))
+  (with-children (child node)
+    (:name
+     (setf (name person) (text child)))
+    (:email
+     (setf (email person) (text child)))
+    (:uri
+     (setf (link person) (parse-to 'link child format)))))
 
 (defmethod parse-to ((generator generator) (node plump:element) (format atom))
   (setf (link generator) (plump:attribute node "uri"))
@@ -68,48 +69,52 @@
   (setf (name generator) (text node)))
 
 (defmethod parse-to ((item authored-item) (node plump:element) (format atom))
-  (with-child (child node :title)
-    (setf (title item) (parse-atom-content child)))
-  (with-child (child node :id)
-    (setf (id item) (text child)))
-  (with-child (child node :updated)
-    (setf (updated-on item) (parse-to 'date child format)))
-  (with-child (child node :rights)
-    (setf (rights item) (text child)))
-  (with-child (child node :link)
-    (setf (link item) (parse-to 'link child format)))
-  (with-child (child node :author)
-    (push (parse-to 'person child format) (authors item)))
-  (with-child (child node :contributor)
-    (push (parse-to 'person child format) (contributors item)))
-  (with-child (child node :category)
-    (with-child (term child :term)
-      (push (text term) (categories item)))))
+  (with-children (child node)
+    (:title
+     (setf (title item) (parse-atom-content child)))
+    (:id
+     (setf (id item) (text child)))
+    (:updated
+     (setf (updated-on item) (parse-to 'date child format)))
+    (:rights
+     (setf (rights item) (text child)))
+    (:link
+     (setf (link item) (parse-to 'link child format)))
+    (:author
+     (push (parse-to 'person child format) (authors item)))
+    (:contributor
+     (push (parse-to 'person child format) (contributors item)))
+    (:category
+     (with-child (term child :term)
+       (push (text term) (categories item))))))
 
 (defmethod parse-to ((entry entry) (node plump:element) (format atom))
   (call-next-method)
-  (with-child (child node :published)
-    (setf (published-on entry) (parse-to 'date child format)))
-  (with-child (child node :source)
-    (with-child (id child :id)
-      (setf (source entry) (text id)))
-    (with-child (link child :link)
-      (setf (source entry) (parse-to 'link link format))))
-  (with-child (child node :summary)
-    (setf (summary entry) (parse-atom-content child)))
-  (with-child (child node :content)
-    (setf (content entry) (parse-atom-content child))))
+  (with-children (child node)
+    (:published
+     (setf (published-on entry) (parse-to 'date child format)))
+    (:source
+     (with-children (sub child)
+       (:id
+        (setf (source entry) (text id)))
+       (:link
+        (setf (source entry) (parse-to 'link link format)))))
+    (:summary
+     (setf (summary entry) (parse-atom-content child)))
+    (:content
+     (setf (content entry) (parse-atom-content child)))))
 
 (defmethod parse-to ((feed feed) (node plump:element) (format atom))
   (call-next-method)
-  (with-child (child node :subtitle)
-    (setf (summary feed) (parse-atom-content child)))
-  (with-child (child node :generator)
-    (setf (generator feed) (parse-to 'generator child format)))
-  (with-child (child node :logo)
-    (setf (logo feed) (text child)))
-  (with-child (child node :entry)
-    (push (parse-to 'entry child format) (content feed))))
+  (with-children (child node)
+    (:subtitle
+     (setf (summary feed) (parse-atom-content child)))
+    (:generator
+     (setf (generator feed) (parse-to 'generator child format)))
+    (:logo
+     (setf (logo feed) (text child)))
+    (:entry
+     (push (parse-to 'entry child format) (content feed)))))
 
 (defmethod serialize-to ((target plump:nesting-node) (date local-time:timestamp) (format atom))
   (plump:make-text-node target (format-time date local-time:+rfc3339-format+)))

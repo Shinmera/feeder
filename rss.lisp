@@ -20,6 +20,116 @@
         (push (parse-to 'feed channel format) feeds)))
     (nreverse feeds)))
 
+(defmethod parse-to ((date (eql 'date)) (node plump:element) (format atom))
+  ;; RFC822 date like: Sun, 06 Nov 1994 08:49:37 GMT
+  (let ((parts (split #\  (text node))))
+    ;; Ignore day marker
+    (when (and parts (not (digit-char-p (char (first parts) 0))))
+      (pop parts))
+    (destructuring-bind (day month year time &optional tz) parts
+      (let ((d (parse-integer day))
+            (m (month-digit month))
+            (y (parse-integer year))
+            (time (split #\: time))
+            (offset (if tz (tz-offset tz) 0)))
+        ;; Deal with 2-character years. This sucks. Why would you ever do this??
+        (when (= 2 (length year))
+          (if (< 80 y)
+              (incf y 1900)
+              (incf y 2000)))
+        (destructuring-bind (hh mm &optional (ss "0")) time
+          (let ((hh (parse-integer hh))
+                (mm (parse-integer mm))
+                (ss (parse-integer ss)))
+            (local-time:encode-timestamp
+             0 ss mm hh d m y :offset offset)))))))
+
+;; TODO: handle Atom elements being included via Atom namespace
+
+(defmethod parse-to ((html (eql 'html)) (node plump:element) (format rss))
+  (let ((plump:*tag-dispatchers* plump:*html-tags*))
+    (plump:parse (text node))))
+
+(defmethod parse-to ((link link) (node plump:element) (format rss))
+  (setf (href link) (text node)))
+
+;;; Try to be smart about informal name formats.
+(defmethod parse-to ((person person) (node plump:element) (format rss))
+  (let ((text (text node)))
+    (cond ((find #\< text) ;; Name <name@example.com>
+           (let* ((open (position #\< text))
+                  (close (or (position #\> text :start open) (length text))))
+             (setf (email person) (subseq text (1+ open) close))
+             (setf (name person) (cl:format NIL "~a ~a" (trim (subseq text 0 open)) (trim (subseq text close))))))
+          ((find #\( text) ;; name@example.com (Name)
+           (let* ((open (position #\( text))
+                  (close (or (position #\) text :start open) (length text))))
+             (setf (email person) (cl:format NIL "~a ~a" (trim (subseq text 0 open)) (trim (subseq text close))))
+             (setf (name person) (subseq text (1+ open) close))))
+          ((find #\  text) ;; Name name@example.com
+           (let* ((parts (split #\  person))
+                  (email (loop for part in parts
+                               do (when (find #\@ part)
+                                    (return part)))))
+             (setf (email person) email)
+             (setf (name person) (cl:format NIL "~{~a~^ ~}" (remove email parts)))))
+          ((find #\@ text) ;; name@example.com
+           (setf (email person) text))
+          (T ;; Name
+           (setf (name person) text)))))
+
+(defmethod parse-to ((item authored-item) (node plump:element) (format rss))
+  (with-children (child node)
+    (:title
+     (setf (title item) (text child)))
+    (:link
+     (setf (link item) (make-instance 'link :url (text child))))
+    (:description
+     (setf (summary item) (parse-to 'html child format)))
+    (:guid
+     (if (string-equal "true" (plump:attribute child "isPermaLink"))
+         (setf (id item) (make-instance 'link :url (text child)))
+         (setf (id item) (text child))))
+    ("pubDate"
+     (setf (published-on item) (parse-to 'date child format)))
+    ("lastBuildDate"
+     (setf (updated-on item) (parse-to 'date child format)))
+    (:copyright
+     (setf (rights item) (text child)))
+    (:language
+     (setf (language item) (text child)))
+    (:category
+     (push (text child) (categories item)))))
+
+(defmethod parse-to ((entry entry) (node plump:element) (format rss))
+  (call-next-method)
+  (with-children (child node)
+    (:author
+     (push (parse-to 'person child format) (authors entry)))
+    (:comments
+     (setf (comment-section entry) (parse-to 'link child format)))
+    (:source
+     (setf (source entry) (make-instance 'link :title (text child) :url (plump:attribute child "url"))))
+    (:content\:encoded
+     (setf (content entry) (parse-to 'html child)))))
+
+(defmethod parse-to ((feed feed) (node plump:element) (format rss))
+  (call-next-method)
+  (with-children (child node)
+    (:generator
+     (setf (generator feed) (parse-to 'generator child format)))
+    (:logo
+     (with-child (url node :url)
+       (setf (logo feed) (text url))))
+    (:ttl
+     (setf (cache-time feed) (parse-integer (text child))))
+    ("managingEditor"
+     (push (parse-to 'person child format) (authors feed)))
+    ("webMaster"
+     (setf (webmaster feed) (parse-to 'person child format)))
+    (:item
+     (push (parse-to 'entry child format) (content feed)))))
+
 (defmethod serialize-to ((target plump:nesting-node) (date local-time:timestamp) (format rss))
   (plump:make-text-node target (format-time date local-time:+rfc-1123-format+)))
 
