@@ -48,6 +48,7 @@
    #:format
    #:xml-format
    #:source-has-format-p
+   #:instance-for-type
    #:parse-feed
    #:serialize-feed
    #:parse-to
@@ -57,4 +58,20 @@
    #:rss)
   ;; atom.lisp
   (:export
-   #:atom))
+   #:unknown-atom-content-type
+   #:use-value
+   #:use-type
+   #:treat-as-plaintext
+   #:continue
+   #:atom)
+  ;; toolkit.lisp
+  (:export
+   #:feed-condition
+   #:argument-missing
+   #:use-value
+   #:continue
+   #:nil-value
+   #:unknown-format
+   #:make-element
+   #:with-children
+   #:text))

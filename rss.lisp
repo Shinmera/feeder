@@ -51,7 +51,7 @@
     (plump:parse (text node))))
 
 (defmethod parse-to ((link link) (node plump:element) (format rss))
-  (setf (href link) (text node)))
+  (setf (url link) (text node)))
 
 ;;; Try to be smart about informal name formats.
 (defmethod parse-to ((person person) (node plump:element) (format rss))
@@ -137,14 +137,13 @@
   (plump:make-text-node target (cond ((and (name person) (email person))
                                       (cl:format NIL "~a <~a>" (name person) (email person)))
                                      (T
-                                      (or (name person) (email person))))))
+                                      (or (name person) (! (email person)))))))
 
 (defmethod serialize-to ((target plump:nesting-node) (item authored-item) (format rss))
-  (make-element target :title - (title item))
-  (make-element target :link - (url (link item)))
-  (make-element target :description - (ensure-string (summary item)))
-  (typecase (id item)
-    (null)
+  (make-element target :title - (! (title item)))
+  (make-element target :link - (url (! (link item))))
+  (make-element target :description - (ensure-string (! (summary item))))
+  (typecase (! (id item))
     (link
      (make-element target :guid
        "isPermaLink" "true"
@@ -203,8 +202,8 @@
         - (princ-to-string (cache-time feed))))
     (let ((author (first (authors feed))))
       (when author
-        (serialize-to (make-element item "managingEditor") author format)))
+        (serialize-to (make-element target "managingEditor") author format)))
     (when (webmaster feed)
-      (serialize-to (make-element item "webMaster") author format))
+      (serialize-to (make-element target "webMaster") (webmaster feed) format))
     (dolist (entry (content feed))
       (serialize-to channel entry format))))

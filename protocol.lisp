@@ -36,7 +36,7 @@
    (authors :initarg :authors :initform () :accessor authors)
    (contributors :initarg :contributors :initform () :accessor contributors)
    (published-on :initarg :published-on :initform NIL :accessor published-on)
-   (updated-on :initarg :updated-on :initform NIL :accessor updated-on)
+   (updated-on :initarg :updated-on :initform (local-time:now) :accessor updated-on)
    (rights :initarg :rights :initform NIL :accessor rights)
    (language :initarg :language :initform NIL :accessor language)
    (link :initform (arg! :LINK))
@@ -67,11 +67,16 @@
   ())
 
 (defgeneric source-has-format-p (source format))
+(defgeneric instance-for-type (type format))
 (defgeneric parse-feed (source format))
 (defgeneric serialize-feed (feed format))
 
 (defgeneric parse-to (target thing format))
 (defgeneric serialize-to (target thing format))
+
+(defmethod instance-for-type (type (format format))
+  (handler-bind ((argument-missing #'continue))
+    (make-instance type)))
 
 (defmethod source-has-format-p (source (format symbol))
   (source-has-format-p source (make-instance format)))
@@ -95,14 +100,14 @@
         for format = (make-instance class)
         do (when (source-has-format-p source format)
              (return (parse-feed source format)))
-        finally (error "Source has unknown format.")))
+        finally (restart-case (error 'unknown-format :source source)
+                  (use-value (value)
+                    :report "Specify the format to use."
+                    :interactive (lambda () (read *query-io*))
+                    (parse-feed source value)))))
 
 (defmethod parse-to ((name symbol) thing format)
-  (parse-to (find-class name) thing format))
-
-(defmethod parse-to ((class class) thing format)
-  (let ((target (handler-bind ((error #'continue))
-                  (make-instance class))))
+  (let ((target (instance-for-type name format)))
     (parse-to target thing format)
     target))
 

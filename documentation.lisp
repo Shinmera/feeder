@@ -280,6 +280,14 @@ See FORMAT")
     "Returns T if the given source is encoded in the given format
 
 See FORMAT")
+
+  (function instance-for-type
+    "Returns an appropriate instance for the requested type under the specified format.
+
+By default this constructs an empty (all slots set to NIL) instance
+using the given type as a class name.
+
+See FORMAT")
   
   (function parse-feed
     "Parses the given source into standardised feed objects according to the specified format.
@@ -350,6 +358,25 @@ See XML-FORMAT"))
 
 ;; atom.lisp
 (docs:define-docs
+  (type unknown-atom-content-type
+    "Error signalled on an unknown content type.
+
+When this condition is signalled, the following restarts are available
+
+  - USE-TYPE
+    Requires an argument that specifies the alternate content-type to
+    use.
+  - USE-VALUE
+    Requires an argument that specifies the content to use in its
+    place.
+  - TREAT-AS-PLAINTEXT
+    Treats the content as plaintext and returns it.
+  - CONTINUE
+    Ignores the content and returns NIL
+
+See FEED-CONDITION
+See ATOM")
+  
   (type atom
     "Atom Feed Format
 
@@ -360,3 +387,97 @@ feed data does not attempt to guess either. However, just as with RSS,
 parsing a feed should not signal an error.
 
 See XML-FORMAT"))
+
+;; toolkit.lisp
+(docs:define-docs
+  (type feed-condition
+    "Base condition for all feed related conditions.
+
+See ARGUMENT-MISSING
+See NIL-VALUE
+See UNKNOWN-FORMAT
+See UNKNOWN-ATOM-CONTENT-TYPE")
+  
+  (type argument-missing
+    "Error signalled when a required argument is missing.
+
+This usually happens when you try to create an instance of an object
+but omitted an argument that is required to create a valid feed.
+
+When this condition is signalled, the following restarts are available
+
+  - USE-VALUE
+    Requires an argument that is then used for the missing argument.
+  - CONTINUE
+    Set the slot to NIL anyway.
+
+See FEED-CONDITION")
+  
+  (type nil-value
+    "Error signalled when a form returns NIL that should not be NIL.
+
+This usually happens during feed serialisation when a slot is empty
+that is required to generate a valid feed.
+
+When this condition is signalled, the following restarts are available
+
+  - USE-VALUE
+    Requires an argument that is then returned in place of the NIL.
+
+See FEED-CONDITION")
+  
+  (type unknown-format
+    "Error signalled when the given feed source has an unknown format.
+
+When this condition is signalled, the following restarts are available
+
+  - USE-VALUE
+    Requires an argument that designates the format to use.
+
+See FEED-CONDITION
+See PARSE-FEED")
+
+  (function make-element
+    "Construct a new XML element.
+
+ATTRIBUTES should be a plist of alternating keys and values. A key may
+either be a string or a symbol. If a symbol, it is treated as the
+attribute name in lowercase. The attribute is only set if the value is
+non-NIL. 
+
+If the key is a symbol with the name \"-\", the value is used as the
+text content of the element.
+
+For example, constructing an element like
+
+   <foo bar=\"baz\">bam</foo>
+
+would be
+
+  (make-element parent \"foo\"
+    :bar \"baz\"
+    - \"bam\")
+
+See PLUMP:MAKE-ELEMENT
+See PLUMP:ATTRIBUTE
+See PLUMP:MAKE-TEXT-NODE")
+
+  (function with-children
+    "Scans through the immediate children of ROOT and executes bodies as matching.
+
+The format should be as follows:
+
+  CLAUSES ::= (TAG . form*)*
+  TAG     --- A string designator
+
+The forms of a clause are executed with NAME bound to a PLUMP:ELEMENT
+whose tag-name matches that specified in the clause. Tag names are
+matched case-insensitively.")
+
+  (function text
+    "Returns the trimmed text contents of the given node.
+
+This is like PLUMP:TEXT, but with ASCII whitespace trimmed off the
+front and end of the text.
+
+See PLUMP:TEXT"))

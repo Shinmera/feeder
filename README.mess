@@ -1,17 +1,64 @@
 ## About Feeder
 Feeder is a syndication feed library. It presents a general protocol for representation of feed items, as well as a framework to translate these objects from and to external formats. It also implements the RSS 2.0 and Atom formats within this framework.
 
-## How To
+## Translating Feeds
 In order to parse a feed, simply call ``parse-feed``:
 
 :: common lisp
-(parse-feed "<rss><channel>" T)
+(feeder:parse-feed "<rss><channel>" T)
 ::
 
 It should determine the format used automatically and construct standardised ``feed`` instances out of the source. In order to reverse the process and turn a ``feed`` into an external format again, simply call ``serialize-feed``:
 
 :: common lisp
-(serialize-feed * 'atom)
+(feeder:serialize-feed (first *) 'feeder:atom)
 ::
 
-For ``xml-format``s, the resulting value will be a ``plump:node`` that can be turned into a string with ``plump:serialize``.
+Note that while parsing is very lenient, serialising is not, and it will error if certain attributes are missing or malformed. You therefore cannot always round-trip feeds like this.
+
+For ``xml-format``s, the resulting value of ``serialize-feed`` will be a ``plump:node`` that can be turned into a string with ``plump:serialize``:
+
+:: common lisp
+(plump:serialize * NIL)
+::
+
+## Generating Feeds
+In order to generate feeds, you need to translate whatever internal representation of your items you have into ``entry`` instances, and then bundle them together into a ``feed`` instance. Both ``feed`` and ``entry`` instances require in the very least an ``:id``, ``:link``, ``:title``, and ``:summary``. The ``:id`` can be whatever you want it to be, but it should be an ID that uniquely identifies your item for all time, preferably even globally so. If the link to your item can be used as a unique identifier, you can supply the same ``link`` instance to ``:id`` and ``:link``. The ``:summary`` can either be a string of plain text content, or a ``plump:node`` for HTML content.
+
+You should also strongly consider filling in the ``:authors`` and ``:published-on`` fields, as well as the ``:content`` field on ``entry`` instances. For the ``:content``, you may supply either plain text or HTML, just as for the ``:summary``.
+
+In order to bundle the ``entry`` instances into the ``feed``, simply put them into a list and set that as the ``feed``'s ``:content``.
+
+When generating and feed objects and serialising them, the system will check for validity of elements to some limited extent. For instance, required slots that are missing will be reported with errors. Generally whenever an error is signalled, plenty of restarts will be available to help deal with the problem both interactively and in an automated fashion.
+
+Please see the descriptions of ``feed-condition``'s subtypes for more information on the error circumstances and possible restarts.
+
+## Extending Feeds and Formats
+If you need to extend the feed objects or add new feed formats, the functions you should look at are ``parse-to`` and ``serialize-to``. In both cases you should add methods to them that specialise on all three arguments, at least one of which must be on a class you control.
+
+Assuming for instance you define an extended ``person`` that has an additional ``location`` field. Ensuring this field is output into the ``atom`` format, you would do something like this:
+
+:: common lisp
+(defmethod feeder:serialize-to ((target plump:element) (person extended-person) (format feeder:atom))
+  (call-next-method)
+  (when (location person)
+    (feeder:make-element target - (location person))))
+::
+
+When parsing we need to substitute our new class for the instance to use when creating ``person``s. To do so, we require a new ``format`` subclass, and a method on ``instance-for-type``:
+
+:: common lisp
+(defmethod feeder:instance-for-type ((type (eql 'person)) (format extended-format))
+  (feeder:instance-for-type 'extended-person format))
+::
+
+Finally we can read out the field in a ``parse-to`` method:
+
+:: common lisp
+(defmethod feeder:parse-to ((person extended-person) (node plump:element) (format extended-format))
+  (call-next-method)
+  (with-child (child node :location)
+    (setf (location person) (feeder:text child))))
+::
+
+Naturally, it is also possible to define entirely new formats that don't necessarily serialise to XML.

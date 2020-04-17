@@ -6,8 +6,40 @@
 
 (in-package #:org.shirakumo.feeder)
 
+(define-condition feed-condition (condition)
+  ())
+
+(define-condition argument-missing (feed-condition error)
+  ((argument :initarg :argument))
+  (:report (lambda (c s) (cl:format s "The argument~%  ~s~%is required but was not supplied."
+                                    (slot-value c 'argument)))))
+
+(define-condition nil-value (feed-condition error)
+  ((form :initarg :form))
+  (:report (lambda (c s) (cl:format s "The value of~%  ~s~%is required to be non-NIL."
+                                    (slot-value c 'form)))))
+
+(define-condition unknown-format (feed-condition error)
+  ((source :initarg :source))
+  (:report (lambda (c s) (cl:format s "The given source has an unknown format."))))
+
 (defun arg! (argument)
-  (cerror "Set to NIL" "The argument ~s is required" argument))
+  (restart-case (error 'argument-missing :argument argument)
+    (use-value (value)
+      :report "Use the supplied value instead."
+      :interactive (lambda () (eval (read *query-io*)))
+      value)
+    (continue ()
+      :report "Force the argument to NIL."
+      NIL)))
+
+(defmacro ! (form)
+  `(or ,form
+       (restart-case (error 'nil-value :form ',form)
+         (use-value (value)
+           :report "Use a different value instead."
+           :interactive (lambda () (eval (read *query-io*)))
+           value))))
 
 (defun ensure-attribute-name (thing)
   (etypecase thing
@@ -19,9 +51,9 @@
     `(let ((,elg ,element))
        ,@(loop for (key val) on attributes by #'cddr
                collect `(when ,val
-                          ,(if (eql key '-)
+                          ,(if (and (typep key 'symbol) (string= "-" key))
                                `(plump:make-text-node ,elg ,val)
-                               `(setf (plump:attribute ,elg (ensure-attribute-name ,key)) ,val))))
+                               `(setf (plump:attribute ,elg (string ,key)) ,val))))
        ,elg)))
 
 (defmacro make-element (parent tag-name &body attributes)
@@ -47,16 +79,16 @@
     `(loop with ,tag = ,tag-name
            for ,name across (plump:children ,root)
            do (when (and (typep ,name 'plump:element)
-                         (string-equal (ensure-attribute-name ,tag) (plump:tag-name ,name)))
+                         (string-equal ,tag (plump:tag-name ,name)))
                 ,@body))))
 
-(defmacro with-children ((name root) &body bodies)
+(defmacro with-children ((name root) &body clauses)
   (let ((tag-name (gensym "TAG-NAME")))
     `(loop for ,name across (plump:children ,root)
            for ,tag-name = (plump:tag-name ,name)
            do (when (typep ,name 'plump:element)
-                (cond ,@(loop for (tag . body) in bodies
-                              collect `((string-equal ,(ensure-attribute-name tag) ,tag-name)
+                (cond ,@(loop for (tag . body) in clauses
+                              collect `((string-equal ,tag ,tag-name)
                                         ,@body)))))))
 
 (defun trim (string)

@@ -6,6 +6,11 @@
 
 (in-package #:org.shirakumo.feeder)
 
+(define-condition unknown-atom-content-type (feed-condition error)
+  ((content-type :initarg :content-type :reader content-type))
+  (:report (lambda (c s) (cl:format s "The content type~%  ~a~%is unknown and cannot be parsed."
+                                    (content-type c)))))
+
 (defclass atom (xml-format)
   ())
 
@@ -37,10 +42,16 @@
              (string-equal "application/xhtml+xml" type))
          (change-class (plump:clone-node node T) 'plump:root))
         (T
-         (restart-case (error "Do not know how to parse content of type ~s" type)
+         (restart-case (error 'unknown-atom-content-type
+                              :content-type type)
            (use-type (type)
              :report "Supply a different content type to use."
+             :interactive (lambda () (read-line *query-io*))
              (parse-atom-content node type))
+           (use-value (value)
+             :report "Use the given value as content instead."
+             :interactive (lambda () (eval (read *query-io*)))
+             value)
            (treat-as-plaintext ()
              :report "Treat the content as plaintext."
              (text node))
@@ -100,9 +111,9 @@
     (:source
      (with-children (sub child)
        (:id
-        (setf (source entry) (text id)))
+        (setf (source entry) (text sub)))
        (:link
-        (setf (source entry) (parse-to 'link link format)))))
+        (setf (source entry) (parse-to 'link sub format)))))
     (:summary
      (setf (summary entry) (parse-atom-content child)))
     (:content
@@ -124,7 +135,7 @@
   (plump:make-text-node target (format-time date local-time:+rfc3339-format+)))
 
 (defmethod serialize-to ((target plump:nesting-node) (person person) (format atom))
-  (make-element target :name - (name person))
+  (make-element target :name - (! (name person)))
   (when (email person)
     (make-element target :email - (email person)))
   (when (link person)
@@ -134,11 +145,11 @@
   (make-element target :generator
     :uri (url generator)
     :version (version generator)
-    - (name generator)))
+    - (! (name generator))))
 
 (defmethod serialize-to ((target plump:nesting-node) (link link) (format atom))
   (make-element target :link
-    :href (url link)
+    :href (! (url link))
     :rel (relation link)
     :type (content-type link)
     :hreflang (language link)
@@ -153,17 +164,16 @@
   (plump:make-text-node target (ensure-string node)))
 
 (defmethod serialize-to ((target plump:nesting-node) (item authored-item) (format atom))
-  (serialize-to (make-element target :title) (title item) format)
-  (typecase (id item)
+  (serialize-to (make-element target :title) (! (title item)) format)
+  (typecase (! (id item))
     (link
      (make-element target :id - (url (id item))))
     (T
      (make-element target :id - (princ-to-string (id item)))))
-  (serialize-to (make-element target :updated) (updated-on item) format)
+  (serialize-to (make-element target :updated) (! (updated-on item)) format)
   (when (rights item)
     (make-element target :rights - (rights item)))
-  (typecase (link item)
-    (null)
+  (etypecase (! (link item))
     (link
      (serialize-to target (link item) format))
     (string
@@ -189,10 +199,10 @@
         (link
          (serialize-to target (comment-section entry) format))
         (string
-         (make-element source :link
+         (make-element target :link
            :rel "alternate"
            :href (url (comment-section entry))))))
-    (serialize-to (make-element target :summary) (summary entry) format)
+    (serialize-to (make-element target :summary) (! (summary entry)) format)
     (when (content entry)
       (serialize-to (make-element target :content) (content entry) format))))
 
@@ -200,7 +210,7 @@
   (let ((target (make-element target :feed
                   :xlmns "http://www.w3.org/2005/Atom")))
     (call-next-method target feed format)
-    (serialize-to (make-element target :subtitle) (summary feed) format)
+    (serialize-to (make-element target :subtitle) (! (summary feed)) format)
     (when (generator feed)
       (serialize-to target (generator feed) format))
     (when (logo feed)
