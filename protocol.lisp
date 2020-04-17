@@ -16,22 +16,22 @@
   string)
 
 (defclass person (remote-item)
-  ((name :initarg :name :initform (error "NAME required") :accessor name)
-   (email :initarg :email :initform (error "EMAIL required") :accessor email)))
+  ((name :initarg :name :initform (cerror "NAME required") :accessor name)
+   (email :initarg :email :initform (cerror "EMAIL required") :accessor email)))
 
 (defclass generator (remote-item)
-  ((name :initarg :name :initform (error "NAME required") :accessor name)
+  ((name :initarg :name :initform (cerror "NAME required") :accessor name)
    (version :initarg :version :initform NIL :accessor version)))
 
 (defclass link ()
-  ((url :initarg :url :initform (error "URL required") :accessor url)
+  ((url :initarg :url :initform (cerror "URL required") :accessor url)
    (relation :initarg :relation :initform NIL :accessor relation)
    (content-type :initarg :content-type :initform NIL :accessor content-type)
    (language :initarg :language :initform NIL :accessor language)
    (title :initarg :title :initform NIL :accessor title)))
 
 (defclass authored-item (remote-item)
-  ((id :initarg :id :initform (error "ID required") :accessor id)
+  ((id :initarg :id :initform (cerror "ID required") :accessor id)
    (author :initarg :author :initform NIL :accessor author)
    (categories :initarg :categories :initform () :accessor categories)
    (authors :initarg :authors :initform () :accessor authors)
@@ -40,9 +40,9 @@
    (updated-on :initarg :updated-on :initform NIL :accessor updated-on)
    (rights :initarg :rights :initform NIL :accessor rights)
    (language :initarg :language :initform NIL :accessor language)
-   (link :initform (error "LINK required"))
-   (title :initarg :title :initform (error "TITLE required") :accessor title)
-   (summary :initarg :summary :initform (error "SUMMARY required") :accessor summary)
+   (link :initform (cerror "LINK required"))
+   (title :initarg :title :initform (cerror "TITLE required") :accessor title)
+   (summary :initarg :summary :initform (cerror "SUMMARY required") :accessor summary)
    (content :initarg :content :initform NIL :accessor content)))
 
 (defmethod url ((item authored-item))
@@ -71,11 +71,6 @@
 (defgeneric parse-to (target thing format))
 (defgeneric serialize-to (target thing format))
 
-(defmethod parse-to ((name symbol) thing format)
-  (let ((target (allocate-instance (find-class name))))
-    (serialize-to target thing format)
-    target))
-
 (defmethod source-has-format-p (source (format symbol))
   (source-has-format-p source (make-instance format)))
 
@@ -92,6 +87,15 @@
         do (when (source-has-format-p source format)
              (return (parse-feed source format)))
         finally (error "Source has unknown format.")))
+
+(defmethod parse-to ((name symbol) thing format)
+  (parse-to (find-class name) thing format))
+
+(defmethod parse-to ((class class) thing format)
+  (let ((target (handler-bind ((error #'continue))
+                  (make-instance class))))
+    (serialize-to target thing format)
+    target))
 
 (defmethod serialize-feed (feed (format symbol))
   (serialize-feed feed (make-instance format)))
