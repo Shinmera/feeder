@@ -20,7 +20,7 @@
         (push (parse-to 'feed channel format) feeds)))
     (nreverse feeds)))
 
-(defmethod parse-to ((date (eql 'date)) (node plump:element) (format atom))
+(defmethod parse-to ((date (eql 'date)) (node plump:element) (format rss))
   ;; RFC822 date like: Sun, 06 Nov 1994 08:49:37 GMT
   (let ((parts (split #\  (text node))))
     ;; Ignore day marker

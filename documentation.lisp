@@ -289,6 +289,9 @@ the source's contents.
 
 Returns a list of FEED instances.
 
+This function should construct the appropriate base object and then
+call PARSE-TO.
+
 See FEED
 See FORMAT")
   
@@ -298,6 +301,9 @@ See FORMAT")
 Returns the encoded feed.
 
 For XML-FORMATs this will be a PLUMP:NODE
+
+This function should construct the appropriate base object and then
+call SERIALIZE-TO.
 
 See PLUMP:NODE
 See XML-FORMAT

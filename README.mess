@@ -1,1 +1,17 @@
-## DON'T LOOK, AAAAAAAAAAAa
+## About Feeder
+Feeder is a syndication feed library. It presents a general protocol for representation of feed items, as well as a framework to translate these objects from and to external formats. It also implements the RSS 2.0 and Atom formats within this framework.
+
+## How To
+In order to parse a feed, simply call ``parse-feed``:
+
+:: common lisp
+(parse-feed "<rss><channel>" T)
+::
+
+It should determine the format used automatically and construct standardised ``feed`` instances out of the source. In order to reverse the process and turn a ``feed`` into an external format again, simply call ``serialize-feed``:
+
+:: common lisp
+(serialize-feed * 'atom)
+::
+
+For ``xml-format``s, the resulting value will be a ``plump:node`` that can be turned into a string with ``plump:serialize``.

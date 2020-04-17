@@ -6,6 +6,9 @@
 
 (in-package #:org.shirakumo.feeder)
 
+(defun arg! (argument)
+  (cerror "Set to NIL" "The argument ~s is required" argument))
+
 (defun ensure-attribute-name (thing)
   (etypecase thing
     (symbol (string-downcase thing))

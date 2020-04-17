@@ -16,22 +16,22 @@
   string)
 
 (defclass person (remote-item)
-  ((name :initarg :name :initform (cerror "NAME required") :accessor name)
-   (email :initarg :email :initform (cerror "EMAIL required") :accessor email)))
+  ((name :initarg :name :initform (arg! :NAME) :accessor name)
+   (email :initarg :email :initform (arg! :EMAIL) :accessor email)))
 
 (defclass generator (remote-item)
-  ((name :initarg :name :initform (cerror "NAME required") :accessor name)
+  ((name :initarg :name :initform (arg! :NAME) :accessor name)
    (version :initarg :version :initform NIL :accessor version)))
 
 (defclass link ()
-  ((url :initarg :url :initform (cerror "URL required") :accessor url)
+  ((url :initarg :url :initform (arg! :URL) :accessor url)
    (relation :initarg :relation :initform NIL :accessor relation)
    (content-type :initarg :content-type :initform NIL :accessor content-type)
    (language :initarg :language :initform NIL :accessor language)
    (title :initarg :title :initform NIL :accessor title)))
 
 (defclass authored-item (remote-item)
-  ((id :initarg :id :initform (cerror "ID required") :accessor id)
+  ((id :initarg :id :initform (arg! :ID) :accessor id)
    (categories :initarg :categories :initform () :accessor categories)
    (authors :initarg :authors :initform () :accessor authors)
    (contributors :initarg :contributors :initform () :accessor contributors)
@@ -39,9 +39,9 @@
    (updated-on :initarg :updated-on :initform NIL :accessor updated-on)
    (rights :initarg :rights :initform NIL :accessor rights)
    (language :initarg :language :initform NIL :accessor language)
-   (link :initform (cerror "LINK required"))
-   (title :initarg :title :initform (cerror "TITLE required") :accessor title)
-   (summary :initarg :summary :initform (cerror "SUMMARY required") :accessor summary)
+   (link :initform (arg! :LINK))
+   (title :initarg :title :initform (arg! :TITLE) :accessor title)
+   (summary :initarg :summary :initform (arg! :SUMMARY) :accessor summary)
    (content :initarg :content :initform NIL :accessor content)))
 
 (defmethod url ((item authored-item))
@@ -76,14 +76,21 @@
 (defmethod source-has-format-p (source (format symbol))
   (source-has-format-p source (make-instance format)))
 
+(defmethod source-has-format-p (source (format xml-format))
+  (let ((plump:*tag-dispatchers* plump:*xml-tags*))
+    (source-has-format-p (plump:parse source) format)))
+
 (defmethod parse-feed (source (format symbol))
   (parse-feed source (make-instance format)))
 
-(defmethod parse-feed (source (format format))
+(defmethod parse-feed (source (format xml-format))
   (let ((plump:*tag-dispatchers* plump:*xml-tags*))
     (parse-feed (plump:parse source) format)))
 
-(defmethod parse-feed ((source plump:root) (format (eql T)))
+;;; KLUDGE: The way this is done SOURCE is parsed from XML many times,
+;;;         once for each SOURCE-HAS-FORMAT-P, and once for the actual
+;;;         PARSE-FEED
+(defmethod parse-feed (source (format (eql T)))
   (loop for class in '(rss atom)
         for format = (make-instance class)
         do (when (source-has-format-p source format)
@@ -96,7 +103,7 @@
 (defmethod parse-to ((class class) thing format)
   (let ((target (handler-bind ((error #'continue))
                   (make-instance class))))
-    (serialize-to target thing format)
+    (parse-to target thing format)
     target))
 
 (defmethod serialize-feed (feed (format symbol))
