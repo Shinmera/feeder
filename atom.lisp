@@ -21,7 +21,11 @@
     (nreverse feeds)))
 
 (defun parse-atom-content (node &optional (type (plump:attribute node "type")))
-  (cond ((or (null type)
+  (cond ((plump:attribute node "src")
+         (make-instance 'link
+                        :url (plump:attribute node "src")
+                        :content-type type))
+        ((or (null type)
              (string= "" type)
              (string-equal "text" type)
              (string-equal "text/plain" type))
