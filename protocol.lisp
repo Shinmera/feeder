@@ -6,14 +6,21 @@
 
 (in-package #:org.shirakumo.feeder)
 
-(defclass person ()
+(defclass remote-item ()
+  ((link :initarg :link :accessor link)))
+
+(defmethod url ((item remote-item))
+  (url (link item)))
+
+(defmethod url ((string string))
+  string)
+
+(defclass person (remote-item)
   ((name :initarg :name :accessor name)
-   (link :initarg :link :accessor link)
    (email :initarg :email :accessor email)))
 
-(defclass generator ()
+(defclass generator (remote-item)
   ((name :initarg :name :accessor name)
-   (link :initarg :link :accessor link)
    (version :initarg :version :accessor version)))
 
 (defclass link ()
@@ -23,19 +30,24 @@
    (language :initarg :language :accessor language)
    (title :initarg :title :accessor title)))
 
-(defclass authored-item ()
-  ((id :initarg :id :acccessor id)
-   (author :initarg :author :acccessor author)
-   (categories :initarg :categories :acccessor categories)
-   (contributors :initarg :contributors :acccessor contributors)
-   (published-on :initarg :published-on :acccessor published-on)
-   (updated-on :initarg :updated-on :acccessor updated-on)
-   (rights :initarg :rights :acccessor rights)
-   (link :initarg :link :acccessor link)
-   (language :initarg :language :acccessor language)
-   (title :initarg :title :acccessor title)
-   (summary :initarg :summary :acccessor summary)
-   (content :initarg :content :acccessor content)))
+(defclass authored-item (remote-item)
+  ((id :initarg :id :accessor id)
+   (author :initarg :author :accessor author)
+   (categories :initarg :categories :accessor categories)
+   (contributors :initarg :contributors :accessor contributors)
+   (published-on :initarg :published-on :accessor published-on)
+   (updated-on :initarg :updated-on :accessor updated-on)
+   (rights :initarg :rights :accessor rights)
+   (language :initarg :language :accessor language)
+   (title :initarg :title :accessor title)
+   (summary :initarg :summary :accessor summary)
+   (content :initarg :content :accessor content)))
+
+(defmethod url ((item authored-item))
+  (let ((link (link item)))
+    (etypecase link
+      (link (url link))
+      (string link))))
 
 (defclass feed (authored-item)
   ((cache-time :initarg :cache-time :accessor cache-time)
@@ -52,13 +64,18 @@
 
 (defgeneric source-has-format-p (source format))
 (defgeneric parse-feed (source format))
-(defgeneric serialize-feed (feed format &optional stream))
+(defgeneric serialize-feed (feed format))
+(defgeneric serialize-to (target thing format))
 
 (defmethod source-has-format-p (source (format symbol))
   (source-has-format-p source (make-instance format)))
 
 (defmethod parse-feed (source (format symbol))
   (parse-feed source (make-instance format)))
+
+(defmethod parse-feed (source (format format))
+  (let ((plump:*tag-dispatchers* plump:*xml-tags*))
+    (parse-feed (plump:parse source) format)))
 
 (defmethod parse-feed ((source plump:root) (format (eql T)))
   (loop for class in '(rss atom)
@@ -67,15 +84,12 @@
              (return (parse-feed source format)))
         finally (error "Source has unknown format.")))
 
-(defmethod serialize-feed (feed (format symbol) &optional stream)
-  (serialize-feed feed (make-instance format) stream))
+(defmethod serialize-feed (feed (format symbol))
+  (serialize-feed feed (make-instance format)))
 
-(defmethod serialize-feed :around (feed format &optional stream)
-  (etypecase stream
-    (null
-     (with-output-to-string (stream)
-       (call-next-method feed format stream)))
-    ((eql T)
-     (call-next-method feed format *standard-output*))
-    (stream
-     (call-next-method))))
+(defmethod serialize-feed ((feed feed) (format format))
+  (let ((root (plump:make-root)))
+    (set-attributes (plump:make-xml-header root)
+      :version "1.0"
+      :encoding "UTF-8")
+    (serialize-to root feed format)))

@@ -15,4 +15,75 @@
 
 (defmethod parse-feed ((source plump-dom:node) (format rss)))
 
-(defmethod serialize-feed ((feed feed) (format rss) &optional stream))
+(defmethod serialize-to ((target plump:nesting-node) (date local-time:timestamp) (format rss))
+  (plump:make-text-node target (format-time date local-time:+rfc-1123-format+)))
+
+(defmethod serialize-to ((target plump:nesting-node) (item authored-item) (format rss))
+  (make-element target :title - (title item))
+  (make-element target :link - (url (link item)))
+  (make-element target :description - (ensure-string (summary item)))
+  (typecase (id item)
+    (null)
+    (link
+     (make-element target :guid
+       "isPermaLink" "true"
+       - (url (id item))))
+    (T
+     (make-element target :guid
+       "isPermaLink" "false"
+       - (princ-to-string (id item)))))
+  (when (published-on item)
+    (serialize-to (make-element target "pubDate") (published-on item) format))
+  (when (updated-on item)
+    (serialize-to (make-element target "lastBuildDate") (published-on item) format))
+  (when (rights item)
+    (make-element target :copyright - (rights item)))
+  (when (language item)
+    (make-element target :language - (language item)))
+  (dolist (category (categories item))
+    (make-element target :category - category)))
+
+(defmethod serialize-to ((target plump:nesting-node) (entry entry) (format rss))
+  (let ((item (make-element target :item)))
+    (call-next-method item entry format)
+    (let ((author (first (contributors entry))))
+      (when author
+        (make-element item :author - (email author))))
+    (when (comment-section entry)
+      (make-element item :comments - (url (comment-section entry))))
+    (when (source entry)
+      (make-element item :source
+        :url (url (source entry))
+        - (title (source entry))))
+    (when (content entry)
+      (make-element item :content\:encoded
+        - (ensure-string (content entry))))))
+
+(defmethod serialize-to ((target plump:nesting-node) (feed feed) (format rss))
+  (let* ((rss (make-element target :rss
+                :version "2.0"
+                :xmlns\:content "http://purl.org/rss/1.0/modules/content/"))
+         (channel (make-element rss :channel)))
+    (call-next-method channel feed format)
+    (when (generator feed)
+      (make-element channel :generator
+        :url (url (generator feed))
+        - (cl:format NIL "~a~@[ ~a~]" (name (generator feed)) (version (generator feed)))))
+    (when (logo feed)
+      (let ((image (make-element channel :image)))
+        (make-element image :url
+          - (logo feed))
+        (make-element image :title
+          - "logo")
+        (make-element image :link
+          - (url feed))))
+    (when (cache-time feed)
+      (make-element channel :ttl
+        - (princ-to-string (cache-time feed))))
+    (let ((author (first (contributors feed))))
+      (when author
+        (make-element target "managingEditor" - (email author))))
+    (when (webmaster feed)
+      (make-element channel "webMaster" - (email (webmaster feed))))
+    (dolist (entry (content feed))
+      (serialize-to channel entry format))))

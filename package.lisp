@@ -6,4 +6,5 @@
 
 (defpackage #:org.shirakumo.feeder
   (:use #:cl)
+  (:shadow #:atom #:format)
   (:export))

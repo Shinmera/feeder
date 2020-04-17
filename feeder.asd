@@ -15,9 +15,11 @@
   :source-control (:git "https://github.com/shinmera/feeder.git")
   :serial T
   :components ((:file "package")
+               (:file "toolkit")
                (:file "protocol")
                (:file "rss")
                (:file "atom")
                (:file "documentation"))
   :depends-on (:plump
+               :local-time
                :documentation-utils))
