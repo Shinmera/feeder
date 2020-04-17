@@ -2,6 +2,8 @@
 Feeder is a syndication feed library. It presents a general protocol for representation of feed items, as well as a framework to translate these objects from and to external formats. It also implements the RSS 2.0 and Atom formats within this framework.
 
 ## Translating Feeds
+During this document code examples will assume that ``org.shirakumo.feeder`` has the local nickname ``feeder``.
+
 In order to parse a feed, simply call ``parse-feed``:
 
 :: common lisp
