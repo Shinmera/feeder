@@ -32,7 +32,6 @@
 
 (defclass authored-item (remote-item)
   ((id :initarg :id :initform (cerror "ID required") :accessor id)
-   (author :initarg :author :initform NIL :accessor author)
    (categories :initarg :categories :initform () :accessor categories)
    (authors :initarg :authors :initform () :accessor authors)
    (contributors :initarg :contributors :initform () :accessor contributors)
@@ -62,6 +61,9 @@
    (source :initarg :source :initform NIL :accessor source)))
 
 (defclass format ()
+  ())
+
+(defclass xml-format (format)
   ())
 
 (defgeneric source-has-format-p (source format))
@@ -100,7 +102,7 @@
 (defmethod serialize-feed (feed (format symbol))
   (serialize-feed feed (make-instance format)))
 
-(defmethod serialize-feed ((feed feed) (format format))
+(defmethod serialize-feed ((feed feed) (format xml-format))
   (let ((root (plump:make-root)))
     (set-attributes (plump:make-xml-header root)
       :version "1.0"

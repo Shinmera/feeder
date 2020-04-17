@@ -6,7 +6,7 @@
 
 (in-package #:org.shirakumo.feeder)
 
-(defclass rss (format)
+(defclass rss (xml-format)
   ())
 
 (defmethod source-has-format-p ((source plump-dom:root) (format rss))
@@ -133,6 +133,12 @@
 (defmethod serialize-to ((target plump:nesting-node) (date local-time:timestamp) (format rss))
   (plump:make-text-node target (format-time date local-time:+rfc-1123-format+)))
 
+(defmethod serialize-to ((target plump:element) (person person) (format rss))
+  (plump:make-text-node target (cond ((and (name person) (email person))
+                                      (cl:format NIL "~a <~a>" (name person) (email person)))
+                                     (T
+                                      (or (name person) (email person))))))
+
 (defmethod serialize-to ((target plump:nesting-node) (item authored-item) (format rss))
   (make-element target :title - (title item))
   (make-element target :link - (url (link item)))
@@ -163,7 +169,7 @@
     (call-next-method item entry format)
     (let ((author (first (authors entry))))
       (when author
-        (make-element item :author - (email author))))
+        (serialize-to (make-element item :author) author format)))
     (when (comment-section entry)
       (make-element item :comments - (url (comment-section entry))))
     (when (source entry)
@@ -197,8 +203,8 @@
         - (princ-to-string (cache-time feed))))
     (let ((author (first (authors feed))))
       (when author
-        (make-element target "managingEditor" - (email author))))
+        (serialize-to (make-element item "managingEditor") author format)))
     (when (webmaster feed)
-      (make-element channel "webMaster" - (email (webmaster feed))))
+      (serialize-to (make-element item "webMaster") author format))
     (dolist (entry (content feed))
       (serialize-to channel entry format))))

@@ -6,7 +6,7 @@
 
 (in-package #:org.shirakumo.feeder)
 
-(defclass atom (format)
+(defclass atom (xml-format)
   ())
 
 (defmethod source-has-format-p ((source plump-dom:root) (format atom))
@@ -184,6 +184,14 @@
       (let ((source (make-element target :source)))
         (make-element source :title - (title (source entry)))
         (serialize-to source (source entry) format)))
+    (when (comment-section entry)
+      (etypecase (comment-section entry)
+        (link
+         (serialize-to target (comment-section entry) format))
+        (string
+         (make-element source :link
+           :rel "alternate"
+           :href (url (comment-section entry))))))
     (serialize-to (make-element target :summary) (summary entry) format)
     (when (content entry)
       (serialize-to (make-element target :content) (content entry) format))))
