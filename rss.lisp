@@ -13,7 +13,12 @@
   (loop for child across (plump:children source)
         thereis (string-equal "rss" (plump:tag-name child))))
 
-(defmethod parse-feed ((source plump-dom:node) (format rss)))
+(defmethod parse-feed ((source plump-dom:root) (format rss))
+  (let ((feeds ()))
+    (with-child (child source :rss)
+      (with-child (channel child :channel)
+        (push (parse-to 'feed channel format) feeds)))
+    (nreverse feeds)))
 
 (defmethod serialize-to ((target plump:nesting-node) (date local-time:timestamp) (format rss))
   (plump:make-text-node target (format-time date local-time:+rfc-1123-format+)))
@@ -46,7 +51,7 @@
 (defmethod serialize-to ((target plump:nesting-node) (entry entry) (format rss))
   (let ((item (make-element target :item)))
     (call-next-method item entry format)
-    (let ((author (first (contributors entry))))
+    (let ((author (first (authors entry))))
       (when author
         (make-element item :author - (email author))))
     (when (comment-section entry)
@@ -80,7 +85,7 @@
     (when (cache-time feed)
       (make-element channel :ttl
         - (princ-to-string (cache-time feed))))
-    (let ((author (first (contributors feed))))
+    (let ((author (first (authors feed))))
       (when author
         (make-element target "managingEditor" - (email author))))
     (when (webmaster feed)

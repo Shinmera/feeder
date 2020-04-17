@@ -15,9 +15,10 @@
   (let ((elg (gensym "ELEMENT")))
     `(let ((,elg ,element))
        ,@(loop for (key val) on attributes by #'cddr
-               collect (if (eql key '-)
-                           `(plump:make-text-node ,elg ,val)
-                           `(setf (plump:attribute ,elg (ensure-attribute-name ,key)) ,val)))
+               collect `(when ,val
+                          ,(if (eql key '-)
+                               `(plump:make-text-node ,elg ,val)
+                               `(setf (plump:attribute ,elg (ensure-attribute-name ,key)) ,val))))
        ,elg)))
 
 (defmacro make-element (parent tag-name &body attributes)
@@ -37,3 +38,14 @@
     (plump:node
      (let ((plump:*tag-dispatchers* plump:*html-tags*))
        (plump:serialize content NIL)))))
+
+(defmacro with-child ((name root tag-name) &body body)
+  (let ((tag (gensym "TAG")))
+    `(loop with ,tag = ,tag-name
+           for ,name across (plump:children ,root)
+           do (when (and (typep ,name 'plump:element)
+                         (string-equal (ensure-attribute-name ,tag) (plump:tag-name ,name)))
+                ,@body))))
+
+(defun text (entity)
+  (string-trim '(#\Space #\Tab #\Return #\Linefeed) (plump:text entity)))
