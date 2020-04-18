@@ -129,7 +129,8 @@
     (:logo
      (setf (logo feed) (text child)))
     (:entry
-     (push (parse-to 'entry child format) (content feed)))))
+     (push (parse-to 'entry child format) (content feed))))
+  (setf (content feed) (nreverse (content feed))))
 
 (defmethod serialize-to ((target plump:nesting-node) (date local-time:timestamp) (format atom))
   (plump:make-text-node target (format-time date local-time:+rfc3339-format+)))

@@ -10,7 +10,8 @@
   ((link :initarg :link :initform NIL :accessor link)))
 
 (defmethod url ((item remote-item))
-  (url (link item)))
+  (when (link item)
+    (url (link item))))
 
 (defmethod url ((string string))
   string)
@@ -61,7 +62,7 @@
 
 (defmethod print-object ((item authored-item) stream)
   (print-unreadable-object (item stream :type T)
-    (cl:format stream "~s ~a"
+    (cl:format stream "~s~@[ ~a~]"
                (title item) (id item))))
 
 (defmethod url ((item authored-item))

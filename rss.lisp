@@ -67,7 +67,7 @@
              (setf (email person) (cl:format NIL "~a ~a" (trim (subseq text 0 open)) (trim (subseq text close))))
              (setf (name person) (subseq text (1+ open) close))))
           ((find #\  text) ;; Name name@example.com
-           (let* ((parts (split #\  person))
+           (let* ((parts (split #\  text))
                   (email (loop for part in parts
                                do (when (find #\@ part)
                                     (return part)))))
@@ -77,6 +77,9 @@
            (setf (email person) text))
           (T ;; Name
            (setf (name person) text)))))
+
+(defmethod parse-to ((generator generator) (node plump:element) (format rss))
+  (setf (name generator) (text node)))
 
 (defmethod parse-to ((item authored-item) (node plump:element) (format rss))
   (with-children (child node)
@@ -111,7 +114,7 @@
     (:source
      (setf (source entry) (make-instance 'link :title (text child) :url (plump:attribute child "url"))))
     (:content\:encoded
-     (setf (content entry) (parse-to 'html child)))))
+     (setf (content entry) (parse-to 'html child format)))))
 
 (defmethod parse-to ((feed feed) (node plump:element) (format rss))
   (call-next-method)
@@ -128,7 +131,8 @@
     ("webMaster"
      (setf (webmaster feed) (parse-to 'person child format)))
     (:item
-     (push (parse-to 'entry child format) (content feed)))))
+     (push (parse-to 'entry child format) (content feed))))
+  (setf (content feed) (nreverse (content feed))))
 
 (defmethod serialize-to ((target plump:nesting-node) (date local-time:timestamp) (format rss))
   (plump:make-text-node target (format-time date local-time:+rfc-1123-format+)))
@@ -143,7 +147,8 @@
   (make-element target :title - (! (title item)))
   (make-element target :link - (url (! (link item))))
   (make-element target :description - (ensure-string (! (summary item))))
-  (typecase (! (id item))
+  (typecase (id item)
+    (null)
     (link
      (make-element target :guid
        "isPermaLink" "true"
@@ -155,7 +160,7 @@
   (when (published-on item)
     (serialize-to (make-element target "pubDate") (published-on item) format))
   (when (updated-on item)
-    (serialize-to (make-element target "lastBuildDate") (published-on item) format))
+    (serialize-to (make-element target "lastBuildDate") (updated-on item) format))
   (when (rights item)
     (make-element target :copyright - (rights item)))
   (when (language item)
