@@ -169,33 +169,33 @@
     (make-element target :category - category)))
 
 (defmethod serialize-to ((target plump:nesting-node) (entry entry) (format rss))
-  (let ((item (make-element target :item)))
-    (call-next-method item entry format)
+  (let ((target (make-element target :item)))
+    (call-next-method target entry format)
     (let ((author (first (authors entry))))
       (when author
-        (serialize-to (make-element item :author) author format)))
+        (serialize-to (make-element target :author) author format)))
     (when (comment-section entry)
-      (make-element item :comments - (url (comment-section entry))))
+      (make-element target :comments - (url (comment-section entry))))
     (when (source entry)
-      (make-element item :source
+      (make-element target :source
         :url (url (source entry))
         - (title (source entry))))
     (when (content entry)
-      (make-element item :content\:encoded
+      (make-element target :content\:encoded
         - (ensure-string (content entry))))))
 
 (defmethod serialize-to ((target plump:nesting-node) (feed feed) (format rss))
   (let* ((rss (make-element target :rss
                 :version "2.0"
                 :xmlns\:content "http://purl.org/rss/1.0/modules/content/"))
-         (channel (make-element rss :channel)))
-    (call-next-method channel feed format)
+         (target (make-element rss :channel)))
+    (call-next-method target feed format)
     (when (generator feed)
-      (make-element channel :generator
+      (make-element target :generator
         :url (url (generator feed))
         - (cl:format NIL "~a~@[ ~a~]" (name (generator feed)) (version (generator feed)))))
     (when (logo feed)
-      (let ((image (make-element channel :image)))
+      (let ((image (make-element target :image)))
         (make-element image :url
           - (logo feed))
         (make-element image :title
@@ -203,7 +203,7 @@
         (make-element image :link
           - (url feed))))
     (when (cache-time feed)
-      (make-element channel :ttl
+      (make-element target :ttl
         - (princ-to-string (cache-time feed))))
     (let ((author (first (authors feed))))
       (when author
@@ -211,4 +211,4 @@
     (when (webmaster feed)
       (serialize-to (make-element target "webMaster") (webmaster feed) format))
     (dolist (entry (content feed))
-      (serialize-to channel entry format))))
+      (serialize-to target entry format))))
