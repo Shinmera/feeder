@@ -15,9 +15,9 @@
   ())
 
 (defmethod source-has-format-p ((source plump-dom:root) (format atom))
-  (loop for child across (plump:children source)
-        thereis (and (string-equal "feed" (plump:tag-name child))
-                     (string-equal "http://www.w3.org/2005/Atom" (plump:get-attribute child "xlmns")))))
+  (with-child (child source :feed)
+    (when (string-equal "http://www.w3.org/2005/Atom" (plump:get-attribute child "xmlns"))
+      (return T))))
 
 (defmethod parse-feed ((source plump-dom:root) (format atom))
   (let ((feeds ()))
@@ -60,7 +60,7 @@
              NIL)))))
 
 (defmethod parse-to ((date (eql 'date)) (node plump:element) (format atom))
-  (local-time:parse-rfc3339-timestring (text node) :fail-on-error NIL))
+  (local-time:parse-timestring (text node)))
 
 (defmethod parse-to ((link link) (node plump:element) (format atom))
   (setf (url link) (plump:attribute node "href"))
@@ -202,7 +202,8 @@
          (make-element target :link
            :rel "alternate"
            :href (url (comment-section entry))))))
-    (serialize-to (make-element target :summary) (! (summary entry)) format)
+    (when (summary entry)
+      (serialize-to (make-element target :summary) (summary entry) format))
     (when (content entry)
       (serialize-to (make-element target :content) (content entry) format))))
 

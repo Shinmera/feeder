@@ -19,9 +19,19 @@
   ((name :initarg :name :initform (arg! :NAME) :accessor name)
    (email :initarg :email :initform (arg! :EMAIL) :accessor email)))
 
+(defmethod print-object ((person person) stream)
+  (print-unreadable-object (person stream :type T)
+    (cl:format stream "~@[~a~]~@[ <~a>~]"
+               (name person) (email person))))
+
 (defclass generator (remote-item)
   ((name :initarg :name :initform (arg! :NAME) :accessor name)
    (version :initarg :version :initform NIL :accessor version)))
+
+(defmethod print-object ((generator generator) stream)
+  (print-unreadable-object (generator stream :type T)
+    (cl:format stream "~@[~a~]~@[ ~a~]"
+               (name generator) (version generator))))
 
 (defclass link ()
   ((url :initarg :url :initform (arg! :URL) :accessor url)
@@ -29,6 +39,11 @@
    (content-type :initarg :content-type :initform NIL :accessor content-type)
    (language :initarg :language :initform NIL :accessor language)
    (title :initarg :title :initform NIL :accessor title)))
+
+(defmethod print-object ((link link) stream)
+  (print-unreadable-object (link stream :type T)
+    (cl:format stream "~a"
+               (url link))))
 
 (defclass authored-item (remote-item)
   ((id :initarg :id :initform (arg! :ID) :accessor id)
@@ -43,6 +58,11 @@
    (title :initarg :title :initform (arg! :TITLE) :accessor title)
    (summary :initarg :summary :initform (arg! :SUMMARY) :accessor summary)
    (content :initarg :content :initform NIL :accessor content)))
+
+(defmethod print-object ((item authored-item) stream)
+  (print-unreadable-object (item stream :type T)
+    (cl:format stream "~s ~a"
+               (title item) (id item))))
 
 (defmethod url ((item authored-item))
   (let ((link (link item)))
@@ -119,4 +139,5 @@
     (set-attributes (plump:make-xml-header root)
       :version "1.0"
       :encoding "UTF-8")
-    (serialize-to root feed format)))
+    (serialize-to root feed format)
+    root))

@@ -10,8 +10,8 @@
   ())
 
 (defmethod source-has-format-p ((source plump-dom:root) (format rss))
-  (loop for child across (plump:children source)
-        thereis (string-equal "rss" (plump:tag-name child))))
+  (with-child (child source :rss)
+    (return T)))
 
 (defmethod parse-feed ((source plump-dom:root) (format rss))
   (let ((feeds ()))

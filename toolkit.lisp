@@ -53,7 +53,7 @@
                collect `(when ,val
                           ,(if (and (typep key 'symbol) (string= "-" key))
                                `(plump:make-text-node ,elg ,val)
-                               `(setf (plump:attribute ,elg (string ,key)) ,val))))
+                               `(setf (plump:attribute ,elg ,(ensure-attribute-name key)) ,val))))
        ,elg)))
 
 (defmacro make-element (parent tag-name &body attributes)

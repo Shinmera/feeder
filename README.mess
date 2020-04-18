@@ -7,7 +7,7 @@ During this document code examples will assume that ``org.shirakumo.feeder`` has
 In order to parse a feed, simply call ``parse-feed``:
 
 :: common lisp
-(feeder:parse-feed "<rss><channel>" T)
+(feeder:parse-feed "<rss><channel><title>Test</title><description>test</description><guid>1</guid><link>http://example.com</link>" T)
 ::
 
 It should determine the format used automatically and construct standardised ``feed`` instances out of the source. In order to reverse the process and turn a ``feed`` into an external format again, simply call ``serialize-feed``:
