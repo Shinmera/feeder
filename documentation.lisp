@@ -472,7 +472,11 @@ The format should be as follows:
 
 The forms of a clause are executed with NAME bound to a PLUMP:ELEMENT
 whose tag-name matches that specified in the clause. Tag names are
-matched case-insensitively.")
+matched case-insensitively.
+
+See PLUMP:CHILDREN
+See PLUMP:TAG-NAME
+See PLUMP:ELEMENT")
 
   (function text
     "Returns the trimmed text contents of the given node.

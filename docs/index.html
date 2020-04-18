@@ -1,0 +1,393 @@
+<!DOCTYPE html> <html lang="EN"> <head> <meta charset="utf-8"> <title>Feeder</title> <style>html body{margin:0 auto 0 auto;padding:20px;max-width:1024px;font-family:sans-serif;font-size:14pt;overflow-y:scroll;}html body a{text-decoration:none;}html body a[href]{color:#0055AA;}html body a[href]:hover{color:#0088EE;}html body pre{background:#FAFAFA;border:1px solid #DDDDDD;padding:0.75em;overflow-x:auto;}html body pre >code a[href]{color:#223388;}article.project h1{font-size:1.7em;}article.project h1,article.project h2,article.project h3,article.project h4,article.project h5,article.project h6{margin:0.2em 0 0.1em 0;text-indent:1em;}article.project >header{text-align:center;}article.project >header img.logo{display:block;margin:auto;max-height:170px;}article.project >header h1{display:inline-block;text-indent:0;font-size:2.5em;}article.project >header .version{vertical-align:bottom;}article.project >header .languages{margin-top:-0.5em;text-transform:capitalize;}article.project >header .description{margin:0;}article.project >header .pages{margin-top:0.5em;font-size:1.2em;text-transform:capitalize;}article.project >header .pages a{display:inline-block;padding:0 0.2em;}article.project >section{margin:1em 0 1em 0;}article.project #index >ul{list-style:none;margin:0;padding:0;}article.project .row label{display:inline-block;min-width:8em;}article.project #system .row{display:flex;}article.project #system #dependencies{display:inline;margin:0;padding:0;}article.project #system #dependencies li{display:inline;padding:0 0.2em;}article.definition{margin:1em 0 0 0;}article.definition >header h1,article.definition >header h2,article.definition >header h3,article.definition >header h4,article.definition >header h5,article.definition >header h6{text-indent:0;display:inline-block;}article.definition >header ul{display:inline-block;list-style:none;margin:0;padding:0;}article.definition >header ul li{display:inline-block;padding:0 0.2em 0 0;}article.definition >header .visibility{display:none;}article.definition >header .visibility,article.definition >header .type{text-transform:lowercase;}article.definition >header .source-link{visibility:hidden;float:right;}article.definition >header .source-link:after{visibility:visible;content:"[SRC]";}article.definition .docstring{margin:0 0 0 1em;}article.definition .docstring pre{font-size:0.8em;white-space:pre-wrap;}.definition.package >header ul.nicknames{display:inline-block;list-style:none;margin:0;padding:0 0 0 1em;}.definition.package >header ul.nicknames li{display:inline;}.definition.package >header ul.nicknames:before{content:"(";}.definition.package >header ul.nicknames:after{content:")";}.definition.package ul.definitions{margin:0;list-style:none;padding:0 0 0 0.5em;}.definition.callable >header .name:before,.definition.type >header .name:before{content:"(";font-weight:normal;}.definition.callable >header .arguments:after,.definition.type >header .arguments:after{content:")";}.definition.callable >header .arguments .arguments:before,.definition.type >header .arguments .arguments:before{content:"(";}.definition.callable >header .arguments .argument,.definition.type >header .arguments .argument{padding:0;}.definition.callable >header .arguments .argument.lambda-list-keyword,.definition.type >header .arguments .argument.lambda-list-keyword{color:#991155;}.definition li>mark{background:none;border-left:0.3em solid #0088EE;padding-left:0.3em;display:block;} </style> </head> <body> <article class="project"> <header>  <h1>feeder</h1>  <span class="version">1.0.0</span>  <nav class="languages">  </nav>  <p class="description">RSS, Atom and general feed parsing and generating</p>  <nav class="pages">  </nav> </header> <section id="documentation"><article><h2 id="About Feeder">About Feeder</h2><p>Feeder is a syndication feed library. It presents a general protocol for representation of feed items, as well as a framework to translate these objects from and to external formats. It also implements the RSS 2.0 and Atom formats within this framework.</p><h2 id="Translating Feeds">Translating Feeds</h2><p>During this document code examples will assume that <code>org.shirakumo.feeder</code> has the local nickname <code>feeder</code>.</p><p>In order to parse a feed, simply call <code><a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3APARSE-FEED" class="xref">parse-feed</a></code>:</p><code style="display:block" class="code-block" data-language="common lisp"><pre>(<a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3APARSE-FEED" class="xref">feeder:parse-feed</a> &quot;&lt;rss&gt;&lt;channel&gt;&lt;title&gt;Test&lt;/title&gt;&lt;description&gt;test&lt;/description&gt;&lt;guid&gt;1&lt;/guid&gt;&lt;link&gt;http://example.com&lt;/link&gt;&quot; T)</pre></code><p>It should determine the format used automatically and construct standardised <code><a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AFEED" class="xref">feed</a></code> instances out of the source. In order to reverse the process and turn a <code><a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AFEED" class="xref">feed</a></code> into an external format again, simply call <code><a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASERIALIZE-FEED" class="xref">serialize-feed</a></code>:</p><code style="display:block" class="code-block" data-language="common lisp"><pre>(<a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASERIALIZE-FEED" class="xref">feeder:serialize-feed</a> (<a href="http://l1sp.org/cl/first" class="xref">first</a> <a href="http://l1sp.org/cl/%2A" class="xref">*</a>) 'feeder:atom)</pre></code><p>Note that while parsing is very lenient, serialising is not, and it will error if certain attributes are missing or malformed. You therefore cannot always round-trip feeds like this.</p><p>For <code><a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AXML-FORMAT" class="xref">xml-format</a></code>s, the resulting value of <code><a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASERIALIZE-FEED" class="xref">serialize-feed</a></code> will be a <code><a href="https://Shinmera.github.io/plump/#CLASS%20PLUMP%3ANODE" class="xref">plump:node</a></code> that can be turned into a string with <code><a href="https://Shinmera.github.io/plump/#FUNCTION%20PLUMP%3ASERIALIZE" class="xref">plump:serialize</a></code>:</p><code style="display:block" class="code-block" data-language="common lisp"><pre>(<a href="https://Shinmera.github.io/plump/#FUNCTION%20PLUMP-DOM%3ASERIALIZE" class="xref">plump:serialize</a> <a href="http://l1sp.org/cl/%2A" class="xref">*</a> NIL)</pre></code><h2 id="Generating Feeds">Generating Feeds</h2><p>In order to generate feeds, you need to translate whatever internal representation of your items you have into <code><a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AENTRY" class="xref">entry</a></code> instances, and then bundle them together into a <code><a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AFEED" class="xref">feed</a></code> instance. Both <code><a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AFEED" class="xref">feed</a></code> and <code><a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AENTRY" class="xref">entry</a></code> instances require in the very least an <code>:id</code>, <code>:link</code>, <code>:title</code>, and <code>:summary</code>. The <code>:id</code> can be whatever you want it to be, but it should be an ID that uniquely identifies your item for all time, preferably even globally so. If the link to your item can be used as a unique identifier, you can supply the same <code><a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ALINK" class="xref">link</a></code> instance to <code>:id</code> and <code>:link</code>. The <code>:summary</code> can either be a string of plain text content, or a <code><a href="https://Shinmera.github.io/plump/#CLASS%20PLUMP%3ANODE" class="xref">plump:node</a></code> for HTML content.</p><p>You should also strongly consider filling in the <code>:authors</code> and <code>:published-on</code> fields, as well as the <code>:content</code> field on <code><a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AENTRY" class="xref">entry</a></code> instances. For the <code>:content</code>, you may supply either plain text or HTML, just as for the <code>:summary</code>.</p><p>In order to bundle the <code><a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AENTRY" class="xref">entry</a></code> instances into the <code><a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AFEED" class="xref">feed</a></code>, simply put them into a list and set that as the <code><a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AFEED" class="xref">feed</a></code>'s <code>:content</code>.</p><p>When generating and feed objects and serialising them, the system will check for validity of elements to some limited extent. For instance, required slots that are missing will be reported with errors. Generally whenever an error is signalled, plenty of restarts will be available to help deal with the problem both interactively and in an automated fashion.</p><p>Please see the descriptions of <code><a href="#CONDITION%20ORG.SHIRAKUMO.FEEDER%3AFEED-CONDITION" class="xref">feed-condition</a></code>'s subtypes for more information on the error circumstances and possible restarts.</p><h2 id="Extending Feeds and Formats">Extending Feeds and Formats</h2><p>If you need to extend the feed objects or add new feed formats, the functions you should look at are <code><a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3APARSE-TO" class="xref">parse-to</a></code> and <code><a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASERIALIZE-TO" class="xref">serialize-to</a></code>. In both cases you should add methods to them that specialise on all three arguments, at least one of which must be on a class you control.</p><p>Assuming for instance you define an extended <code><a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3APERSON" class="xref">person</a></code> that has an additional <code>location</code> field. Ensuring this field is output into the <code><a href="http://l1sp.org/cl/atom" class="xref">atom</a></code> format, you would do something like this:</p><code style="display:block" class="code-block" data-language="common lisp"><pre>(<a href="http://l1sp.org/cl/defclass" class="xref">defclass</a> extended-person (feeder:person)
+  ((location :initarg :location :initform NIL :accessor location)))
+
+(<a href="http://l1sp.org/cl/defmethod" class="xref">defmethod</a> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASERIALIZE-TO" class="xref">feeder:serialize-to</a> ((target <a href="https://Shinmera.github.io/plump/#CLASS%20PLUMP-DOM%3AELEMENT" class="xref">plump:element</a>) (person extended-person) (format <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AATOM" class="xref">feeder:atom</a>))
+  (call-next-method)
+  (<a href="http://l1sp.org/cl/when" class="xref">when</a> (location person)
+    (<a href="#MACRO-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AMAKE-ELEMENT" class="xref">feeder:make-element</a> target :location - (location person))))</pre></code><p>When parsing we need to substitute our new class for the instance to use when creating <code><a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3APERSON" class="xref">person</a></code>s. To do so, we require a new <code><a href="http://l1sp.org/cl/format" class="xref">format</a></code> subclass, and a method on <code><a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AINSTANCE-FOR-TYPE" class="xref">instance-for-type</a></code>:</p><code style="display:block" class="code-block" data-language="common lisp"><pre>(<a href="http://l1sp.org/cl/defclass" class="xref">defclass</a> extended-format (feeder:atom)
+  ())
+
+(<a href="http://l1sp.org/cl/defmethod" class="xref">defmethod</a> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AINSTANCE-FOR-TYPE" class="xref">feeder:instance-for-type</a> ((type (<a href="http://l1sp.org/cl/eql" class="xref">eql</a> 'person)) (format extended-format))
+  (<a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AINSTANCE-FOR-TYPE" class="xref">feeder:instance-for-type</a> 'extended-person format))</pre></code><p>Finally we can read out the field in a <code><a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3APARSE-TO" class="xref">parse-to</a></code> method:</p><code style="display:block" class="code-block" data-language="common lisp"><pre>(<a href="http://l1sp.org/cl/defmethod" class="xref">defmethod</a> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3APARSE-TO" class="xref">feeder:parse-to</a> ((person extended-person) (node <a href="https://Shinmera.github.io/plump/#CLASS%20PLUMP-DOM%3AELEMENT" class="xref">plump:element</a>) (format extended-format))
+  (call-next-method)
+  (<a href="#MACRO-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AWITH-CHILD" class="xref">feeder:with-child</a> (child node :location)
+    (setf (location person) (feeder:text child))))</pre></code><p>Naturally, it is also possible to define entirely new formats that don't necessarily serialise to XML.</p></article></section>   <section id="system"> <h2>System Information</h2>  <div class="row"> <label for="version">Version:</label> <a id="version">1.0.0</a> </div>   <div class="row"> <label for="dependencies">Dependencies:</label> <ul id="dependencies"><li><a class="external" href="https://Shinmera.github.io/plump/">plump</a></li><li><a class="external">local-time</a></li><li><a class="external" href="https://Shinmera.github.io/documentation-utils/">documentation-utils</a></li></ul> </div>   <div class="row"> <label for="author">Author:</label> <a id="author" href="mailto:shinmera@tymoon.eu">Nicolas Hafner</a> </div>   <div class="row"> <label for="license">License:</label> <a id="license" href="https://github.com/shinmera/feeder/blob/master/LICENSE">zlib</a> </div>   <div class="row"> <label for="homepage">Homepage:</label> <a id="homepage" href="https://shinmera.github.io/feeder/">https://shinmera.github.io/feeder/</a> </div>  </section>    <section id="index"> <h2>Definition Index</h2> <ul> <li> <article class="definition package" id="PACKAGE ORG.SHIRAKUMO.FEEDER"> <header> <h3> <a href="#PACKAGE%20ORG.SHIRAKUMO.FEEDER">ORG.SHIRAKUMO.FEEDER</a> </h3> <ul class="nicknames"></ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> <ul class="definitions"> <li> <article class="definition class" id="CLASS ORG.SHIRAKUMO.FEEDER:ATOM"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CLASS</span> <h4 class="name"> <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AATOM">ATOM</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/atom.lisp#L14">Source</a>  </header> <div class="docstring"><pre>Atom Feed Format
+
+As defined in RFC4287 https://tools.ietf.org/html/rfc4287 .
+
+As opposed to RSS, Atom is rather strict, and as such parsing of the
+feed data does not attempt to guess either. However, just as with RSS,
+parsing a feed should not signal an error.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AXML-FORMAT" class="xref">XML-FORMAT</a></pre></div> </article> </li>  <li> <article class="definition class" id="CLASS ORG.SHIRAKUMO.FEEDER:AUTHORED-ITEM"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CLASS</span> <h4 class="name"> <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AAUTHORED-ITEM">AUTHORED-ITEM</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L49">Source</a>  </header> <div class="docstring"><pre>Representation of a basic feed item.
+
+This is used as the base class for FEEDs and ENTRYs in a feed.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AREMOTE-ITEM" class="xref">REMOTE-ITEM</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AID" class="xref">ID</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ACATEGORIES" class="xref">CATEGORIES</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AAUTHORS" class="xref">AUTHORS</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ACONTRIBUTORS" class="xref">CONTRIBUTORS</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3APUBLISHED-ON" class="xref">PUBLISHED-ON</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AUPDATED-ON" class="xref">UPDATED-ON</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ARIGHTS" class="xref">RIGHTS</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ALANGUAGE" class="xref">LANGUAGE</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ALINK" class="xref">LINK</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ATITLE" class="xref">TITLE</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASUMMARY" class="xref">SUMMARY</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ACONTENT" class="xref">CONTENT</a></pre></div> </article> </li>  <li> <article class="definition class" id="CLASS ORG.SHIRAKUMO.FEEDER:ENTRY"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CLASS</span> <h4 class="name"> <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AENTRY">ENTRY</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L80">Source</a>  </header> <div class="docstring"><pre>Representation of a feed item.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AAUTHORED-ITEM" class="xref">AUTHORED-ITEM</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ACOMMENT-SECTION" class="xref">COMMENT-SECTION</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASOURCE" class="xref">SOURCE</a></pre></div> </article> </li>  <li> <article class="definition class" id="CLASS ORG.SHIRAKUMO.FEEDER:FEED"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CLASS</span> <h4 class="name"> <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AFEED">FEED</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L74">Source</a>  </header> <div class="docstring"><pre>Representation of a syndication feed.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AAUTHORED-ITEM" class="xref">AUTHORED-ITEM</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ACACHE-TIME" class="xref">CACHE-TIME</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AGENERATOR" class="xref">GENERATOR</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ALOGO" class="xref">LOGO</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AWEBMASTER" class="xref">WEBMASTER</a></pre></div> </article> </li>  <li> <article class="definition class" id="CLASS ORG.SHIRAKUMO.FEEDER:FORMAT"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CLASS</span> <h4 class="name"> <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AFORMAT">FORMAT</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L84">Source</a>  </header> <div class="docstring"><pre>Base class for an external format for a feed.
+
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASOURCE-HAS-FORMAT-P" class="xref">SOURCE-HAS-FORMAT-P</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3APARSE-FEED" class="xref">PARSE-FEED</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASERIALIZE-FEED" class="xref">SERIALIZE-FEED</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3APARSE-TO" class="xref">PARSE-TO</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASERIALIZE-TO" class="xref">SERIALIZE-TO</a></pre></div> </article> </li>  <li> <article class="definition class" id="CLASS ORG.SHIRAKUMO.FEEDER:GENERATOR"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CLASS</span> <h4 class="name"> <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AGENERATOR">GENERATOR</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L28">Source</a>  </header> <div class="docstring"><pre>Representation of a feed generator.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AREMOTE-ITEM" class="xref">REMOTE-ITEM</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ANAME" class="xref">NAME</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AVERSION" class="xref">VERSION</a></pre></div> </article> </li>  <li> <article class="definition class" id="CLASS ORG.SHIRAKUMO.FEEDER:LINK"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CLASS</span> <h4 class="name"> <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3ALINK">LINK</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L37">Source</a>  </header> <div class="docstring"><pre>Representation of a link to an external resource.
+
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AURL" class="xref">URL</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ARELATION" class="xref">RELATION</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ACONTENT-TYPE" class="xref">CONTENT-TYPE</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ALANGUAGE" class="xref">LANGUAGE</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ATITLE" class="xref">TITLE</a></pre></div> </article> </li>  <li> <article class="definition class" id="CLASS ORG.SHIRAKUMO.FEEDER:PERSON"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CLASS</span> <h4 class="name"> <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3APERSON">PERSON</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L19">Source</a>  </header> <div class="docstring"><pre>Representation of a person.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AREMOTE-ITEM" class="xref">REMOTE-ITEM</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ANAME" class="xref">NAME</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AEMAIL" class="xref">EMAIL</a></pre></div> </article> </li>  <li> <article class="definition class" id="CLASS ORG.SHIRAKUMO.FEEDER:REMOTE-ITEM"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CLASS</span> <h4 class="name"> <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AREMOTE-ITEM">REMOTE-ITEM</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L9">Source</a>  </header> <div class="docstring"><pre>An item representing a remote resource of some kind.
+
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ALINK" class="xref">LINK</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AURL" class="xref">URL</a></pre></div> </article> </li>  <li> <article class="definition class" id="CLASS ORG.SHIRAKUMO.FEEDER:RSS"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CLASS</span> <h4 class="name"> <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3ARSS">RSS</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/rss.lisp#L9">Source</a>  </header> <div class="docstring"><pre>RSS 2.0 Feed Format
+
+As defined in https://validator.w3.org/feed/docs/rss2.html with select
+extensions such as content:encoded.
+
+RSS is a very &quot;web&quot; format, which is to say that the files claiming
+to be RSS that can be found out there all do not adhere to any strict
+specifications, or anything at all for that matter. This makes parsing
+and dealing with RSS a pain in the ass.
+
+This parser performs a best-effort at parsing the content you hand it,
+and attempts to standardise and culminate certain features together as
+appropriate. It should not error when parsing a feed, but may miss or
+misinterpret certain values present in the raw feed data. For
+instance, of duplicated tags that should only exist once, only the
+last tag is actually preserved in the generated objects.
+
+Serialising to RSS will follow the description as closely as
+possible without touching undefined parts.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AXML-FORMAT" class="xref">XML-FORMAT</a></pre></div> </article> </li>  <li> <article class="definition class" id="CLASS ORG.SHIRAKUMO.FEEDER:XML-FORMAT"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CLASS</span> <h4 class="name"> <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AXML-FORMAT">XML-FORMAT</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L87">Source</a>  </header> <div class="docstring"><pre>Base class for formats based on XML.
+
+See <a href="http://l1sp.org/cl/format" class="xref">FORMAT</a></pre></div> </article> </li>  <li> <article class="definition condition" id="CONDITION ORG.SHIRAKUMO.FEEDER:ARGUMENT-MISSING"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CONDITION</span> <h4 class="name"> <a href="#CONDITION%20ORG.SHIRAKUMO.FEEDER%3AARGUMENT-MISSING">ARGUMENT-MISSING</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/toolkit.lisp#L12">Source</a>  </header> <div class="docstring"><pre>Error signalled when a required argument is missing.
+
+This usually happens when you try to create an instance of an object
+but omitted an argument that is required to create a valid feed.
+
+When this condition is signalled, the following restarts are available
+
+  - USE-VALUE
+    Requires an argument that is then used for the missing argument.
+  - CONTINUE
+    Set the slot to NIL anyway.
+
+See <a href="#CONDITION%20ORG.SHIRAKUMO.FEEDER%3AFEED-CONDITION" class="xref">FEED-CONDITION</a></pre></div> </article> </li>  <li> <article class="definition condition" id="CONDITION ORG.SHIRAKUMO.FEEDER:FEED-CONDITION"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CONDITION</span> <h4 class="name"> <a href="#CONDITION%20ORG.SHIRAKUMO.FEEDER%3AFEED-CONDITION">FEED-CONDITION</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/toolkit.lisp#L9">Source</a>  </header> <div class="docstring"><pre>Base condition for all feed related conditions.
+
+See <a href="#CONDITION%20ORG.SHIRAKUMO.FEEDER%3AARGUMENT-MISSING" class="xref">ARGUMENT-MISSING</a>
+See <a href="#CONDITION%20ORG.SHIRAKUMO.FEEDER%3ANIL-VALUE" class="xref">NIL-VALUE</a>
+See <a href="#CONDITION%20ORG.SHIRAKUMO.FEEDER%3AUNKNOWN-FORMAT" class="xref">UNKNOWN-FORMAT</a>
+See <a href="#CONDITION%20ORG.SHIRAKUMO.FEEDER%3AUNKNOWN-ATOM-CONTENT-TYPE" class="xref">UNKNOWN-ATOM-CONTENT-TYPE</a></pre></div> </article> </li>  <li> <article class="definition condition" id="CONDITION ORG.SHIRAKUMO.FEEDER:NIL-VALUE"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CONDITION</span> <h4 class="name"> <a href="#CONDITION%20ORG.SHIRAKUMO.FEEDER%3ANIL-VALUE">NIL-VALUE</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/toolkit.lisp#L17">Source</a>  </header> <div class="docstring"><pre>Error signalled when a form returns NIL that should not be NIL.
+
+This usually happens during feed serialisation when a slot is empty
+that is required to generate a valid feed.
+
+When this condition is signalled, the following restarts are available
+
+  - USE-VALUE
+    Requires an argument that is then returned in place of the NIL.
+
+See <a href="#CONDITION%20ORG.SHIRAKUMO.FEEDER%3AFEED-CONDITION" class="xref">FEED-CONDITION</a></pre></div> </article> </li>  <li> <article class="definition condition" id="CONDITION ORG.SHIRAKUMO.FEEDER:UNKNOWN-ATOM-CONTENT-TYPE"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CONDITION</span> <h4 class="name"> <a href="#CONDITION%20ORG.SHIRAKUMO.FEEDER%3AUNKNOWN-ATOM-CONTENT-TYPE">UNKNOWN-ATOM-CONTENT-TYPE</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/atom.lisp#L9">Source</a>  </header> <div class="docstring"><pre>Error signalled on an unknown content type.
+
+When this condition is signalled, the following restarts are available
+
+  - USE-TYPE
+    Requires an argument that specifies the alternate content-type to
+    use.
+  - USE-VALUE
+    Requires an argument that specifies the content to use in its
+    place.
+  - TREAT-AS-PLAINTEXT
+    Treats the content as plaintext and returns it.
+  - CONTINUE
+    Ignores the content and returns NIL
+
+See <a href="#CONDITION%20ORG.SHIRAKUMO.FEEDER%3AFEED-CONDITION" class="xref">FEED-CONDITION</a>
+See <a href="http://l1sp.org/cl/atom" class="xref">ATOM</a></pre></div> </article> </li>  <li> <article class="definition condition" id="CONDITION ORG.SHIRAKUMO.FEEDER:UNKNOWN-FORMAT"> <header> <span class="visibility">EXTERNAL</span> <span class="type">CONDITION</span> <h4 class="name"> <a href="#CONDITION%20ORG.SHIRAKUMO.FEEDER%3AUNKNOWN-FORMAT">UNKNOWN-FORMAT</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments"></ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/toolkit.lisp#L22">Source</a>  </header> <div class="docstring"><pre>Error signalled when the given feed source has an unknown format.
+
+When this condition is signalled, the following restarts are available
+
+  - USE-VALUE
+    Requires an argument that designates the format to use.
+
+See <a href="#CONDITION%20ORG.SHIRAKUMO.FEEDER%3AFEED-CONDITION" class="xref">FEED-CONDITION</a>
+See <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3APARSE-FEED" class="xref">PARSE-FEED</a></pre></div> </article> </li>  <li> <article class="definition function callable" id="FUNCTION ORG.SHIRAKUMO.FEEDER:CONTINUE"> <header> <span class="visibility">EXTERNAL</span> <span class="type">FUNCTION</span> <h4 class="name"> <a href="#FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ACONTINUE">CONTINUE</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument lambda-list-keyword">&amp;OPTIONAL</li>    <li class="argument">CONDITION</li>  </ul>  </header> <div class="docstring"><pre>Transfer control to a restart named CONTINUE, or return NIL if none exists.</pre></div> </article> </li>  <li> <article class="definition function callable" id="FUNCTION ORG.SHIRAKUMO.FEEDER:TEXT"> <header> <span class="visibility">EXTERNAL</span> <span class="type">FUNCTION</span> <h4 class="name"> <a href="#FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ATEXT">TEXT</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">ENTITY</li>  </ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/toolkit.lisp#L97">Source</a>  </header> <div class="docstring"><pre>Returns the trimmed text contents of the given node.
+
+This is like PLUMP:TEXT, but with ASCII whitespace trimmed off the
+front and end of the text.
+
+See <a href="https://Shinmera.github.io/plump/#GENERIC-FUNCTION%20PLUMP%3ATEXT" class="xref">PLUMP:TEXT</a></pre></div> </article> </li>  <li> <article class="definition function callable" id="FUNCTION ORG.SHIRAKUMO.FEEDER:USE-VALUE"> <header> <span class="visibility">EXTERNAL</span> <span class="type">FUNCTION</span> <h4 class="name"> <a href="#FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AUSE-VALUE">USE-VALUE</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">VALUE</li>    <li class="argument lambda-list-keyword">&amp;OPTIONAL</li>    <li class="argument">CONDITION</li>  </ul>  </header> <div class="docstring"><pre>Transfer control and VALUE to a restart named USE-VALUE, or
+return NIL if none exists.</pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:AUTHORS"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AAUTHORS">AUTHORS</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the list of persons that authored the item.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3APERSON" class="xref">PERSON</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AAUTHORED-ITEM" class="xref">AUTHORED-ITEM</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF AUTHORS)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20AUTHORS%29">(SETF AUTHORS)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:CACHE-TIME"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ACACHE-TIME">CACHE-TIME</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the amount of time the feed can be cached.
+
+This value should be an integer representing the cache time in
+minutes.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AFEED" class="xref">FEED</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF CACHE-TIME)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20CACHE-TIME%29">(SETF CACHE-TIME)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:CATEGORIES"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ACATEGORIES">CATEGORIES</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the list of categories that the item relates to.
+
+Each category should be a simple string.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AAUTHORED-ITEM" class="xref">AUTHORED-ITEM</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF CATEGORIES)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20CATEGORIES%29">(SETF CATEGORIES)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:COMMENT-SECTION"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ACOMMENT-SECTION">COMMENT-SECTION</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the link for a comment section for this item.
+
+Should be a LINK or URL.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3ALINK" class="xref">LINK (type)</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AENTRY" class="xref">ENTRY</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF COMMENT-SECTION)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20COMMENT-SECTION%29">(SETF COMMENT-SECTION)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:CONTENT"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ACONTENT">CONTENT</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the content of the item.
+
+For FEEDs, the content should be a list of ENTRYs.
+For ENTRYs this may be a plaintext string or a PLUMP:NODE.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AFEED" class="xref">FEED</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AENTRY" class="xref">ENTRY</a>
+See <a href="https://Shinmera.github.io/plump/#CLASS%20PLUMP%3ANODE" class="xref">PLUMP:NODE</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AAUTHORED-ITEM" class="xref">AUTHORED-ITEM</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF CONTENT)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20CONTENT%29">(SETF CONTENT)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:CONTENT-TYPE"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ACONTENT-TYPE">CONTENT-TYPE</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the content mime-type at the end of the link.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3ALINK" class="xref">LINK (type)</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF CONTENT-TYPE)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20CONTENT-TYPE%29">(SETF CONTENT-TYPE)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:CONTRIBUTORS"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ACONTRIBUTORS">CONTRIBUTORS</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the list of persons that contributed to the item.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3APERSON" class="xref">PERSON</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AAUTHORED-ITEM" class="xref">AUTHORED-ITEM</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF CONTRIBUTORS)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20CONTRIBUTORS%29">(SETF CONTRIBUTORS)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:EMAIL"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AEMAIL">EMAIL</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the email address of the person.
+
+No address validation is performed.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3APERSON" class="xref">PERSON</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF EMAIL)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20EMAIL%29">(SETF EMAIL)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:GENERATOR"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AGENERATOR">GENERATOR</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the generator that created this feed.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AGENERATOR" class="xref">GENERATOR (type)</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AFEED" class="xref">FEED</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF GENERATOR)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20GENERATOR%29">(SETF GENERATOR)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:ID"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AID">ID</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the unique ID of the item.
+
+This should either be a value that can be PRINCed to obtain a string
+representation of the unique identifier, or a LINK.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3ALINK" class="xref">LINK (type)</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AAUTHORED-ITEM" class="xref">AUTHORED-ITEM</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF ID)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20ID%29">(SETF ID)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:INSTANCE-FOR-TYPE"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AINSTANCE-FOR-TYPE">INSTANCE-FOR-TYPE</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">TYPE</li>    <li class="argument">FORMAT</li>  </ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L91">Source</a>  </header> <div class="docstring"><pre>Returns an appropriate instance for the requested type under the specified format.
+
+By default this constructs an empty (all slots set to NIL) instance
+using the given type as a class name.
+
+See <a href="http://l1sp.org/cl/format" class="xref">FORMAT</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:LANGUAGE"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ALANGUAGE">LANGUAGE</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the language of the item
+
+This should be a two or three letter code name of the language in
+which the item's content is written, though no validation to this
+effect is performed.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3ALINK" class="xref">LINK (type)</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AAUTHORED-ITEM" class="xref">AUTHORED-ITEM</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF LANGUAGE)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20LANGUAGE%29">(SETF LANGUAGE)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:LINK"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ALINK">LINK</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the link of the item.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3ALINK" class="xref">LINK (type)</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AREMOTE-ITEM" class="xref">REMOTE-ITEM</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF LINK)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20LINK%29">(SETF LINK)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:LOGO"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ALOGO">LOGO</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the logo for the feed
+
+This should be a LINK
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AFEED" class="xref">FEED</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF LOGO)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20LOGO%29">(SETF LOGO)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:NAME"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ANAME">NAME</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the name of the item.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3APERSON" class="xref">PERSON</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AGENERATOR" class="xref">GENERATOR (type)</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF NAME)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20NAME%29">(SETF NAME)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:PARSE-FEED"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3APARSE-FEED">PARSE-FEED</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">SOURCE</li>    <li class="argument">FORMAT</li>  </ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L92">Source</a>  </header> <div class="docstring"><pre>Parses the given source into standardised feed objects according to the specified format.
+
+If FORMAT is T, the format is determined automatically depending on
+the source's contents.
+
+Returns a list of FEED instances.
+
+This function should construct the appropriate base object and then
+call PARSE-TO.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AFEED" class="xref">FEED</a>
+See <a href="http://l1sp.org/cl/format" class="xref">FORMAT</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:PARSE-TO"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3APARSE-TO">PARSE-TO</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">TARGET</li>    <li class="argument">THING</li>    <li class="argument">FORMAT</li>  </ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L95">Source</a>  </header> <div class="docstring"><pre>Fills the target with content from thing according to format.
+
+This is used internally in the parsing process.
+
+See <a href="http://l1sp.org/cl/format" class="xref">FORMAT</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:PUBLISHED-ON"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3APUBLISHED-ON">PUBLISHED-ON</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the date on which this item was first published.
+
+The date should be a LOCAL-TIME:TIMESTAMP
+
+See <a href="https://Shinmera.github.io/staple/#CLASS%20LOCAL-TIME%3ATIMESTAMP" class="xref">LOCAL-TIME:TIMESTAMP</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AAUTHORED-ITEM" class="xref">AUTHORED-ITEM</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF PUBLISHED-ON)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20PUBLISHED-ON%29">(SETF PUBLISHED-ON)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:RELATION"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ARELATION">RELATION</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the relation of the link.
+
+The following values are typically recognised:
+
+  - &quot;alternate&quot;
+  - &quot;related&quot;
+  - &quot;self&quot;
+  - &quot;enclosure&quot;
+  - &quot;via&quot;
+
+See RFC4287 for more information.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3ALINK" class="xref">LINK (type)</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF RELATION)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20RELATION%29">(SETF RELATION)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:RIGHTS"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ARIGHTS">RIGHTS</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to copyright information relating to the item.
+
+This may be a plaintext string or a PLUMP:NODE
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AAUTHORED-ITEM" class="xref">AUTHORED-ITEM</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF RIGHTS)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20RIGHTS%29">(SETF RIGHTS)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:SERIALIZE-FEED"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASERIALIZE-FEED">SERIALIZE-FEED</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">FEED</li>    <li class="argument">FORMAT</li>  </ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L93">Source</a>  </header> <div class="docstring"><pre>Turns the given feed into the specified format.
+
+Returns the encoded feed.
+
+For XML-FORMATs this will be a PLUMP:NODE
+
+This function should construct the appropriate base object and then
+call SERIALIZE-TO.
+
+See <a href="https://Shinmera.github.io/plump/#CLASS%20PLUMP%3ANODE" class="xref">PLUMP:NODE</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AXML-FORMAT" class="xref">XML-FORMAT</a>
+See <a href="http://l1sp.org/cl/format" class="xref">FORMAT</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:SERIALIZE-TO"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASERIALIZE-TO">SERIALIZE-TO</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">TARGET</li>    <li class="argument">THING</li>    <li class="argument">FORMAT</li>  </ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L96">Source</a>  </header> <div class="docstring"><pre>Fills the target with content from thing according to format.
+
+This is used internally in the serialisation process.
+
+See <a href="http://l1sp.org/cl/format" class="xref">FORMAT</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:SOURCE"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASOURCE">SOURCE</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the source of this item.
+
+This is used if the entry is aggregated from elsewhere.
+
+Should be a LINK.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3ALINK" class="xref">LINK (type)</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AENTRY" class="xref">ENTRY</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF SOURCE)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20SOURCE%29">(SETF SOURCE)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:SOURCE-HAS-FORMAT-P"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASOURCE-HAS-FORMAT-P">SOURCE-HAS-FORMAT-P</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">SOURCE</li>    <li class="argument">FORMAT</li>  </ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/protocol.lisp#L90">Source</a>  </header> <div class="docstring"><pre>Returns T if the given source is encoded in the given format
+
+See <a href="http://l1sp.org/cl/format" class="xref">FORMAT</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:SUMMARY"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ASUMMARY">SUMMARY</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the summary describing the item in short.
+
+This may be a plaintext string or a PLUMP:NODE
+
+In absence of a CONTENT value, it may also represent the full
+content.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AAUTHORED-ITEM" class="xref">AUTHORED-ITEM</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF SUMMARY)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20SUMMARY%29">(SETF SUMMARY)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:TITLE"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3ATITLE">TITLE</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the title of the item
+
+This may be a plaintext string or a PLUMP:NODE
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3ALINK" class="xref">LINK (type)</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AAUTHORED-ITEM" class="xref">AUTHORED-ITEM</a>
+See <a href="https://Shinmera.github.io/plump/#CLASS%20PLUMP%3ANODE" class="xref">PLUMP:NODE</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF TITLE)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20TITLE%29">(SETF TITLE)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:UPDATED-ON"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AUPDATED-ON">UPDATED-ON</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the date on which this item was last updated.
+
+The date should be a LOCAL-TIME:TIMESTAMP
+
+See <a href="https://Shinmera.github.io/staple/#CLASS%20LOCAL-TIME%3ATIMESTAMP" class="xref">LOCAL-TIME:TIMESTAMP</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AAUTHORED-ITEM" class="xref">AUTHORED-ITEM</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF UPDATED-ON)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20UPDATED-ON%29">(SETF UPDATED-ON)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:URL"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AURL">URL</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">ITEM</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the URL of a link or remote item.
+
+The URL should be encoded as a string, and no URL validation is
+performed.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3ALINK" class="xref">LINK (type)</a>
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AREMOTE-ITEM" class="xref">REMOTE-ITEM</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF URL)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20URL%29">(SETF URL)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:VERSION"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AVERSION">VERSION</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the generator version.
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AGENERATOR" class="xref">GENERATOR (type)</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF VERSION)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20VERSION%29">(SETF VERSION)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:WEBMASTER"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AWEBMASTER">WEBMASTER</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><pre>Accessor to the webmaster responsible for this feed.
+
+This should be a PERSON
+
+See <a href="#CLASS%20ORG.SHIRAKUMO.FEEDER%3AFEED" class="xref">FEED</a></pre></div> </article> </li>  <li> <article class="definition generic-function callable" id="GENERIC-FUNCTION ORG.SHIRAKUMO.FEEDER:(SETF WEBMASTER)"> <header> <span class="visibility">EXTERNAL</span> <span class="type">GENERIC-FUNCTION</span> <h4 class="name"> <a href="#GENERIC-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3A%28SETF%20WEBMASTER%29">(SETF WEBMASTER)</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">NEW-VALUE</li>    <li class="argument">OBJECT</li>  </ul>  </header> <div class="docstring"><i>No documentation provided.</i></div> </article> </li>  <li> <article class="definition macro callable" id="MACRO-FUNCTION ORG.SHIRAKUMO.FEEDER:MAKE-ELEMENT"> <header> <span class="visibility">EXTERNAL</span> <span class="type">MACRO</span> <h4 class="name"> <a href="#MACRO-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AMAKE-ELEMENT">MAKE-ELEMENT</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <li class="argument">PARENT</li>    <li class="argument">TAG-NAME</li>    <li class="argument lambda-list-keyword">&amp;BODY</li>    <li class="argument">ATTRIBUTES</li>  </ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/toolkit.lisp#L59">Source</a>  </header> <div class="docstring"><pre>Construct a new XML element.
+
+ATTRIBUTES should be a plist of alternating keys and values. A key may
+either be a string or a symbol. If a symbol, it is treated as the
+attribute name in lowercase. The attribute is only set if the value is
+non-NIL. 
+
+If the key is a symbol with the name &quot;-&quot;, the value is used as the
+text content of the element.
+
+For example, constructing an element like
+
+   &lt;foo bar=&quot;baz&quot;&gt;bam&lt;/foo&gt;
+
+would be
+
+  (make-element parent &quot;foo&quot;
+    :bar &quot;baz&quot;
+    - &quot;bam&quot;)
+
+See <a href="https://Shinmera.github.io/plump/#FUNCTION%20PLUMP%3AMAKE-ELEMENT" class="xref">PLUMP:MAKE-ELEMENT</a>
+See <a href="https://Shinmera.github.io/plump/#FUNCTION%20PLUMP%3AATTRIBUTE" class="xref">PLUMP:ATTRIBUTE</a>
+See <a href="https://Shinmera.github.io/plump/#FUNCTION%20PLUMP%3AMAKE-TEXT-NODE" class="xref">PLUMP:MAKE-TEXT-NODE</a></pre></div> </article> </li>  <li> <article class="definition macro callable" id="MACRO-FUNCTION ORG.SHIRAKUMO.FEEDER:WITH-CHILDREN"> <header> <span class="visibility">EXTERNAL</span> <span class="type">MACRO</span> <h4 class="name"> <a href="#MACRO-FUNCTION%20ORG.SHIRAKUMO.FEEDER%3AWITH-CHILDREN">WITH-CHILDREN</a> </h4> <ul class="qualifiers"></ul> <ul class="arguments">  <ul class="arguments"> <li class="argument">NAME</li>  <li class="argument">ROOT</li> </ul>    <li class="argument lambda-list-keyword">&amp;BODY</li>    <li class="argument">CLAUSES</li>  </ul>  <a class="source-link" href="https://github.com/shinmera/feeder/blob/master/toolkit.lisp#L85">Source</a>  </header> <div class="docstring"><pre>Scans through the immediate children of ROOT and executes bodies as matching.
+
+The format should be as follows:
+
+  CLAUSES ::= (TAG . form*)*
+  TAG     --- A string designator
+
+The forms of a clause are executed with NAME bound to a PLUMP:ELEMENT
+whose tag-name matches that specified in the clause. Tag names are
+matched case-insensitively.
+
+See <a href="https://Shinmera.github.io/plump/#GENERIC-FUNCTION%20PLUMP%3ACHILDREN" class="xref">PLUMP:CHILDREN</a>
+See <a href="https://Shinmera.github.io/plump/#GENERIC-FUNCTION%20PLUMP%3ATAG-NAME" class="xref">PLUMP:TAG-NAME</a>
+See <a href="https://Shinmera.github.io/plump/#CLASS%20PLUMP%3AELEMENT" class="xref">PLUMP:ELEMENT</a></pre></div> </article> </li> </ul> </article> </li> </ul> </section>  </article> <script>window.addEventListener("DOMContentLoaded", function(){
+    var unmarkElement = function(el){
+        if(el.tagName === "mark" || el.tagName === "MARK"){
+            [].forEach.call(el.childNodes, function(child){
+                el.parentNode.insertBefore(child, el);
+            });
+            el.parentNode.removeChild(el);
+        }else if(el.parentNode.tagName === "mark"){
+            return unmarkElement(el.parentNode);
+        }
+        return null;
+    }
+
+    var unmarkAll = function(root){
+        root = root || document;
+        [].forEach.call(root.querySelectorAll("mark"), unmarkElement);
+    }
+    
+    var markElement = function(el){
+        if(el.parentNode.tagName === "mark" || el.parentNode.tagName === "MARK"){
+            return el.parentNode;
+        } else {
+            unmarkAll();
+            var marked = document.createElement("mark");
+            el.parentNode.insertBefore(marked, el);
+            marked.appendChild(el);
+            return marked;
+        }
+    }
+
+    var markFragmented = function(){
+        if(window.location.hash){
+            var el = document.getElementById(decodeURIComponent(window.location.hash.substr(1)));
+            if(el) markElement(el);
+        }
+    }
+
+    var registerXrefLink = function(link){
+        var el = document.getElementById(decodeURIComponent(link.getAttribute("href").substr(1)));
+        if(el){
+            link.addEventListener("click", function(){
+                markElement(el);
+            });
+        }
+    }
+
+    var registerXrefLinks = function(root){
+        root = root || document;
+        [].forEach.call(root.querySelectorAll("a.xref"), registerXrefLink);
+    }
+
+    markFragmented();
+    registerXrefLinks();
+}); </script> </body> </html> 

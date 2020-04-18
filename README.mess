@@ -41,15 +41,21 @@ If you need to extend the feed objects or add new feed formats, the functions yo
 Assuming for instance you define an extended ``person`` that has an additional ``location`` field. Ensuring this field is output into the ``atom`` format, you would do something like this:
 
 :: common lisp
+(defclass extended-person (feeder:person)
+  ((location :initarg :location :initform NIL :accessor location)))
+
 (defmethod feeder:serialize-to ((target plump:element) (person extended-person) (format feeder:atom))
   (call-next-method)
   (when (location person)
-    (feeder:make-element target - (location person))))
+    (feeder:make-element target :location - (location person))))
 ::
 
 When parsing we need to substitute our new class for the instance to use when creating ``person``s. To do so, we require a new ``format`` subclass, and a method on ``instance-for-type``:
 
 :: common lisp
+(defclass extended-format (feeder:atom)
+  ())
+
 (defmethod feeder:instance-for-type ((type (eql 'person)) (format extended-format))
   (feeder:instance-for-type 'extended-person format))
 ::
@@ -59,7 +65,7 @@ Finally we can read out the field in a ``parse-to`` method:
 :: common lisp
 (defmethod feeder:parse-to ((person extended-person) (node plump:element) (format extended-format))
   (call-next-method)
-  (with-child (child node :location)
+  (feeder:with-child (child node :location)
     (setf (location person) (feeder:text child))))
 ::
 
