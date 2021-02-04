@@ -118,7 +118,7 @@
   (and (<= (length prefix) (length string))
        (string-equal prefix string :end2 (length prefix))))
 
-(defun tz-offset (tz)
+(defun rfc822-tz-offset (tz)
   ;; RFC822 TZ spec parsing. What a fucking mess.
   (let ((tz-end (or (position #\+ tz)
                     (position #\- tz)
@@ -148,3 +148,75 @@
            (+ (* 60 (parse-integer tz :start tz-end :end (+ 2 tz-end)))
               (parse-integer tz :start (+ 2 tz-end)))
            0))))
+
+(defun rfc3339-tz-offset (text)
+  (cond ((string-equal "z" text)
+         0)
+        ((find #\: text)
+         (destructuring-bind (hh mm) (split #\: text)
+           (* 60
+              (+ (* 60 (parse-integer hh))
+                 (parse-integer mm)))))
+        ((= 4 (length text))
+         (* 60
+            (+ (* 60 (parse-integer text :end 2))
+               (parse-integer text :start 2))))))
+
+(defun parse-rfc3339-alike (text)
+  ;; RFC3339 date like 1994-11-06 8:49:37
+  (let ((parts (cond ((find #\T text) (split #\T text))
+                     ((find #\t text) (split #\t text))
+                     (T (split #\  text))))
+        y m d hh mm ss (offset 0))
+    (destructuring-bind (date time) parts
+      (cond ((find #\- date)
+             (destructuring-bind (yy mm dd) (split #\- date)
+               (setf y (parse-integer yy))
+               (setf m (parse-integer mm))
+               (setf d (parse-integer dd))))
+            ((= 8 (length date))
+             (setf y (parse-integer date :start 0 :end 4))
+             (setf m (parse-integer date :start 4 :end 6))
+             (setf d (parse-integer date :start 6 :end 8))))
+      (let ((pos (or (position #\z time)
+                     (position #\Z time)
+                     (position #\+ time)
+                     (position #\- time))))
+        (when pos
+          (setf offset (rfc3339-tz-offset (subseq time pos)))
+          (setf time (subseq time 0 pos))))
+      (cond ((find #\: time)
+             (destructuring-bind (h m &optional s) (split #\: time)
+               (setf hh (parse-integer h))
+               (setf mm (parse-integer m))
+               (setf ss (if s (parse-integer s) 0))))
+            ((= 6 (length time))
+             (setf hh (parse-integer time :start 0 :end 2))
+             (setf mm (parse-integer time :start 2 :end 4))
+             (setf ss (parse-integer time :start 4 :end 6))))
+      (when (and y hh)
+        (local-time:encode-timestamp 00 ss mm hh d m y :offset offset)))))
+
+(defun parse-rfc822-alike (text)
+  ;; RFC822 date like: Sun, 06 Nov 1994 08:49:37 GMT
+  (let ((parts (split #\  text)))
+    ;; Ignore day marker
+    (when (and parts (not (digit-char-p (char (first parts) 0))))
+      (pop parts))
+    (destructuring-bind (day month year time &optional tz) parts
+      (let ((d (parse-integer day))
+            (m (month-digit month))
+            (y (parse-integer year))
+            (time (split #\: time))
+            (offset (if tz (rfc822-tz-offset tz) 0)))
+        ;; Deal with 2-character years. This sucks. Why would you ever do this??
+        (when (= 2 (length year))
+          (if (< 80 y)
+              (incf y 1900)
+              (incf y 2000)))
+        (destructuring-bind (hh mm &optional (ss "0")) time
+          (let ((hh (parse-integer hh))
+                (mm (parse-integer mm))
+                (ss (parse-integer ss)))
+            (local-time:encode-timestamp
+             0 ss mm hh d m y :offset offset)))))))

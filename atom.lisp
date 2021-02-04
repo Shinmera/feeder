@@ -61,7 +61,7 @@
              NIL)))))
 
 (defmethod parse-to ((date (eql 'date)) (node plump:element) (format atom))
-  (local-time:parse-timestring (text node)))
+  (parse-rfc3339-alike (text node)))
 
 (defmethod parse-to ((link link) (node plump:element) (format atom))
   (setf (url link) (plump:attribute node "href"))

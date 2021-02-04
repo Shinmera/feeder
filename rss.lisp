@@ -21,28 +21,8 @@
     (nreverse feeds)))
 
 (defmethod parse-to ((date (eql 'date)) (node plump:element) (format rss))
-  ;; RFC822 date like: Sun, 06 Nov 1994 08:49:37 GMT
-  (let ((parts (split #\  (text node))))
-    ;; Ignore day marker
-    (when (and parts (not (digit-char-p (char (first parts) 0))))
-      (pop parts))
-    (destructuring-bind (day month year time &optional tz) parts
-      (let ((d (parse-integer day))
-            (m (month-digit month))
-            (y (parse-integer year))
-            (time (split #\: time))
-            (offset (if tz (tz-offset tz) 0)))
-        ;; Deal with 2-character years. This sucks. Why would you ever do this??
-        (when (= 2 (length year))
-          (if (< 80 y)
-              (incf y 1900)
-              (incf y 2000)))
-        (destructuring-bind (hh mm &optional (ss "0")) time
-          (let ((hh (parse-integer hh))
-                (mm (parse-integer mm))
-                (ss (parse-integer ss)))
-            (local-time:encode-timestamp
-             0 ss mm hh d m y :offset offset)))))))
+  (or (ignore-errors (parse-rfc3339-alike (text node)))
+      (parse-rfc822-alike (text node))))
 
 ;; TODO: handle Atom elements being included via Atom namespace
 
