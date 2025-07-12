@@ -12,7 +12,7 @@
 
 (defclass person (remote-item)
   ((name :initarg :name :initform (arg! :NAME) :accessor name)
-   (email :initarg :email :initform (arg! :EMAIL) :accessor email)))
+   (email :initarg :email :initform NIL :accessor email)))
 
 (defmethod print-object ((person person) stream)
   (print-unreadable-object (person stream :type T)
