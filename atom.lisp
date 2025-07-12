@@ -205,7 +205,7 @@
 
 (defmethod serialize-to ((target plump:nesting-node) (feed feed) (format atom))
   (let ((target (make-element target :feed
-                  :xlmns "http://www.w3.org/2005/Atom")))
+                  :xmlns "http://www.w3.org/2005/Atom")))
     (call-next-method target feed format)
     (serialize-to (make-element target :subtitle) (! (summary feed)) format)
     (when (generator feed)
