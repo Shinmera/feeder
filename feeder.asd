@@ -4,9 +4,9 @@
   :author "Yukari Hafner <shinmera@tymoon.eu>"
   :maintainer "Yukari Hafner <shinmera@tymoon.eu>"
   :description "RSS, Atom and general feed parsing and generating"
-  :homepage "https://shinmera.github.io/feeder/"
-  :bug-tracker "https://github.com/shinmera/feeder/issues"
-  :source-control (:git "https://github.com/shinmera/feeder.git")
+  :homepage "https://shinmera.com/docs/feeder/"
+  :bug-tracker "https://shinmera.com/project/feeder/issues"
+  :source-control (:git "https://shinmera.com/project/feeder.git")
   :serial T
   :components ((:file "package")
                (:file "toolkit")
